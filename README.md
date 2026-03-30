@@ -169,7 +169,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Contact
 
-For questions or support, please open an issue or contact the maintainer.
+For questions or support, please open an issue.
 
 ---
 
