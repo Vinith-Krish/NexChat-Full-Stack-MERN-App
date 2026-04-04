@@ -103,4 +103,4 @@ This project is not a single Vercel-only app because the backend uses a live ser
 This project is licensed under the MIT License.
 
 ## Contact
-M Vinith Krishna - vinithkrishn20@gmail.com
+M Vinith Krishna - vinithkrishna20@gmail.com
