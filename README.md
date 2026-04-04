@@ -1,176 +1,103 @@
-# NexChat - Full Stack MERN Chat Application
+# NexChat
 
-A modern, full-stack real-time chat application built with **MERN** (MongoDB, Express, React, Node.js) stack. Features user authentication, messaging, profile management, and media uploads.
+NexChat is a full-stack real-time chat application built with React, Vite, Node.js, Express, MongoDB, and Socket.IO.
 
 ## Features
 
-✨ **Core Features**
-- User authentication & authorization
 - Real-time messaging
-- User profile management
-- Image upload support (Cloudinary integration)
-- Responsive UI design
-- Sidebar for user navigation
-- Chat container with message history
-
-🔐 **Security**
-- JWT-based authentication
-- Password hashing
-- Protected routes with middleware
+- Cookie-based authentication
+- Recovery-code password reset with no email dependency
+- Profile management with image upload
+- Online user presence
+- Responsive UI
 
 ## Tech Stack
 
-**Frontend:**
-- React 18
-- Vite (build tool)
-- Context API (state management)
-- CSS for styling
+Frontend:
+- React
+- Vite
+- Socket.IO client
+- React Router
+- React Hot Toast
 
-**Backend:**
+Backend:
 - Node.js
-- Express.js
-- MongoDB (database)
-- Mongoose (ODM)
-- JWT (authentication)
-- Cloudinary (image storage)
+- Express
+- MongoDB and Mongoose
+- Socket.IO
+- Cloudinary
+- JWT
 
 ## Project Structure
 
 ```
 chat-app/
-├── client/                 # React frontend
-│   ├── src/
-│   │   ├── components/    # Reusable UI components
-│   │   ├── context/       # Auth and Chat context
-│   │   ├── pages/         # Page components
-│   │   ├── lib/           # Utility functions
-│   │   └── assets/        # Static assets
-│   ├── vite.config.js
-│   └── package.json
-│
-└── server/                # Node.js backend
-    ├── models/            # Mongoose schemas
-    ├── controllers/       # Business logic
-    ├── routes/            # API endpoints
-    ├── middleware/        # Auth middleware
-    ├── lib/               # Database & utilities
-    └── server.js          # Entry point
+├── client/
+└── server/
 ```
 
-## Installation
+## Local Setup
 
-### Prerequisites
-- Node.js (v14+)
-- npm or yarn
-- MongoDB instance
-- Cloudinary account (for image uploads)
-
-### Backend Setup
+### Backend
 
 ```bash
 cd server
 npm install
-```
-
-Create a `.env` file in the server folder:
-```
-PORT=5000
-MONGODB_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret
-CLOUDINARY_NAME=your_cloudinary_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
-```
-
-```bash
 npm start
 ```
 
-### Frontend Setup
+Required backend env vars:
+
+```env
+MONGODB_URI=
+JWT_SECRET=
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+CORS_ORIGINS=http://localhost:5175
+RECOVERY_CODE_PEPPER=change-this-in-production
+```
+
+### Frontend
 
 ```bash
 cd client
 npm install
-```
-
-Create a `.env` file in the client folder:
-```
-VITE_API_URL=http://localhost:5000
-```
-
-```bash
 npm run dev
 ```
 
-## API Endpoints
+Required frontend env vars:
 
-### User Routes (`/api/users`)
-- `POST /signup` - Register a new user
-- `POST /login` - Login user
-- `GET /profile/:id` - Get user profile
-- `PUT /profile/:id` - Update user profile
-- `GET /` - Get all users
-
-### Message Routes (`/api/messages`)
-- `POST /` - Send a message
-- `GET /:conversationId` - Get messages for a conversation
-- `DELETE /:id` - Delete a message
-
-## Authentication
-
-The app uses JWT (JSON Web Tokens) for authentication. Protected routes require a valid token in the `Authorization` header:
-
-```
-Authorization: Bearer <token>
+```env
+VITE_BACKEND_URL=http://localhost:5001
 ```
 
-## Components
+## Auth Flow
 
-### Frontend Components
-- **ChatContainer** - Main chat interface
-- **Sidebar** - User list and navigation
-- **RightSidebar** - Additional options/settings
-- **HomePage** - Main dashboard
-- **LoginPage** - User authentication
-- **ProfilePage** - User profile management
+- Users sign up with email, password, name, and bio.
+- The server generates a recovery code once at signup.
+- The recovery code is shown once to the user.
+- Password reset uses email + recovery code + new password.
+- Logged-in users can generate a new recovery code from their profile page.
 
-### Context
-- **AuthContext** - Manages user authentication state
-- **ChatContext** - Manages chat and messaging state
+## Deployment
 
-## Running the Application
+Recommended deployment split:
 
-1. **Start MongoDB** - Ensure MongoDB is running
-2. **Start Backend** - `cd server && npm start`
-3. **Start Frontend** - `cd client && npm run dev`
-4. **Open Browser** - Navigate to `http://localhost:5173`
+1. Deploy the backend to Render or another persistent Node host.
+2. Deploy the frontend to Vercel.
+3. Set `VITE_BACKEND_URL` on the frontend.
+4. Set `CORS_ORIGINS` on the backend to include your frontend URL.
+5. Add your production MongoDB, Cloudinary, JWT, and recovery-code secrets.
 
-## Build for Production
+This project is not a single Vercel-only app because the backend uses a live server and Socket.IO.
 
-**Client:**
-```bash
-cd client
-npm run build
-```
+## Notes
 
-**Server:** Deploy to a hosting service (Heroku, Railway, etc.)
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+- OTP/email password reset was removed.
+- Recovery codes are the zero-cost reset mechanism.
+- The old code becomes invalid after generating a new recovery code or resetting the password.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Contact
-
-For questions or support, please open an issue.
-
----
-
-**Happy Chatting!** 💬
+This project is licensed under the MIT License.
