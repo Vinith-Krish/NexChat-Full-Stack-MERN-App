@@ -66,7 +66,7 @@ const ProfilePage = () => {
             <input onChange={(e) => setSelectedImage(e.target.files[0])} type="file" id="avatar"  accept=".png,.jpg,.jpeg" hidden/>
             <img src={previewUrl} alt="Avatar" 
             className="w-12 h-12 rounded-full object-cover" />
-            upload profile image
+            upload profile pic
           </label>
               <input onChange={(e) => setName(e.target.value)} value={name} type="text" required placeholder='Your name' className='p-2
                   border border-gray-500 rounded-md focus:outline-none focus:ring-2
