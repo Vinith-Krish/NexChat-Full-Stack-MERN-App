@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import ChatContainer from '../components/ChatContainer'
 import RightSidebar from '../components/RightSidebar'
 import Sidebar from '../components/Sidebar'
@@ -8,8 +8,8 @@ const HomePage = () => {
 
   const { selectedUser} = useContext(ChatContext);
   return (
-    <div className='border w-full h-screen sm:px-[15%] sm:py-[5%]'>
-      <div className={`backdrop-blur border-2 border-gray-600 rounded-2xl overflow-hidden h-full grid grid-cols-1 relative ${selectedUser?'md:grid-cols-[1fr_1.5fr_1fr] xl:grid-cols-[1_fr_2fr_1fr]':'md:grid-cols-2'}`}>
+    <div className='min-h-screen w-full px-3 py-3 sm:px-6 sm:py-6 xl:px-[8%] xl:py-[4%]'>
+      <div className={`h-[calc(100vh-24px)] sm:h-[calc(100vh-48px)] xl:h-[calc(100vh-64px)] backdrop-blur-2xl bg-white/5 border border-white/10 shadow-2xl rounded-3xl overflow-hidden grid grid-cols-1 relative ${selectedUser ? 'md:grid-cols-[280px_minmax(0,1.5fr)_320px]' : 'md:grid-cols-[280px_minmax(0,1fr)]'}`}>
         <Sidebar/>
         <ChatContainer/>
         <RightSidebar/>

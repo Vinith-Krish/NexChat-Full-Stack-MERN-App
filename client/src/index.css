@@ -2,6 +2,25 @@
 @import "tailwindcss";
 *{
      font-family: "Outfit", sans-serif;
+     box-sizing: border-box;
+}
+
+html, body, #root {
+    min-height: 100%;
+}
+
+body {
+    margin: 0;
+    background:
+        radial-gradient(circle at top left, rgba(129, 133, 178, 0.18), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(168, 85, 247, 0.16), transparent 24%),
+        #070816;
+    color: white;
+}
+
+::selection {
+    background: rgba(168, 85, 247, 0.35);
+    color: white;
 }
 
 

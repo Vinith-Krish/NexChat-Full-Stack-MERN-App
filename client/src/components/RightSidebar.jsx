@@ -31,13 +31,19 @@ const RightSidebar = () => {
         <hr className="border-[#ffffff50] my-4" />
         <div className="px-5 text-xs">
           <p className="">Media</p>
-          <div className="mt-2 max-h-50 overflow-y-scroll grid grid-cols-2 gap-4 opacity-80">
-            {msgImages.map((url,index)=>(
-              <div key={index} onClick={()=>window.open(url)} className="cursor-pointer rounded">
-                <img src={url} alt="" className="h-full rounded-md" />
-              </div>
-            ))}
-          </div>
+          {msgImages.length > 0 ? (
+            <div className="mt-2 max-h-50 overflow-y-scroll grid grid-cols-2 gap-4 opacity-80">
+              {msgImages.map((url,index)=>(
+                <div key={index} onClick={()=>window.open(url)} className="cursor-pointer rounded">
+                  <img src={url} alt="" className="h-full rounded-md" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-2 rounded-lg border border-white/10 bg-white/5 p-4 text-gray-400">
+              No shared media yet.
+            </div>
+          )}
         </div>
         <button onClick={logout} className="absolute bottom-5 left-1/2 transform -translate-x-1/2 bg-linear-to-r from-purple-400 to-violet-600
         text-white border-none text-sm font-light py-2 px-20 rounded-full cursor-pointer">

@@ -1,7 +1,8 @@
 import cloudinary from "../lib/cloudinary.js";
 import Message from "../models/Message.js";
 import User from "../models/User.js";
-import { io,userSocketMap } from "../server.js";
+import { io, userSocketMap } from "../server.js";
+import { z } from "zod";
 // get all users except the logged in user
 export const getUsersForSidebar = async (req, res) => {
   try {
@@ -31,19 +32,40 @@ export const getUsersForSidebar = async (req, res) => {
 
 // get all messages for selected users
 export const getMessages = async (req, res) => {
+  const schema = z.object({
+    id: z.string().min(1),
+  });
+  const parseResult = schema.safeParse(req.params);
+  if (!parseResult.success) {
+    return res.json({ success: false, message: "Invalid user id", errors: parseResult.error.errors });
+  }
   try {
-    const { id: selectedUserId } = req.params;
+    const { id: selectedUserId } = parseResult.data;
     const myId = req.user._id;
     const messages = await Message.find({
       $or: [
         { senderId: myId, receiverId: selectedUserId },
         { senderId: selectedUserId, receiverId: myId },
       ],
-    });
+    }).sort({ createdAt: 1 });
+
+    const unseenMessages = await Message.find({
+      senderId: selectedUserId,
+      receiverId: myId,
+      seen: false,
+    }).select("_id senderId");
+
     await Message.updateMany(
-      { senderId: selectedUserId, receiverId: myId },
+      { senderId: selectedUserId, receiverId: myId, seen: false },
       { seen: true },
     );
+
+    unseenMessages.forEach((message) => {
+      const senderSocketId = userSocketMap[String(message.senderId)];
+      if (senderSocketId) {
+        io.to(senderSocketId).emit("messageSeen", { messageId: message._id });
+      }
+    });
     res.json({ success: true, messages });
   } catch (error) {
     console.log(error.message);
@@ -52,9 +74,22 @@ export const getMessages = async (req, res) => {
 };
 // api to mark message as seen using message id
 export const markMessageSeen = async (req, res) => {
+  const schema = z.object({
+    id: z.string().min(1),
+  });
+  const parseResult = schema.safeParse(req.params);
+  if (!parseResult.success) {
+    return res.json({ success: false, message: "Invalid message id", errors: parseResult.error.errors });
+  }
   try {
-    const { id } = req.params;
-    await Message.findByIdAndUpdate(id, { seen: true });
+    const { id } = parseResult.data;
+    const message = await Message.findByIdAndUpdate(id, { seen: true }, { new: true });
+    if (message) {
+      const senderSocketId = userSocketMap[String(message.senderId)];
+      if (senderSocketId) {
+        io.to(senderSocketId).emit("messageSeen", { messageId: message._id });
+      }
+    }
     res.json({ success: true, message: "Message marked as seen" });
   } catch (error) {
     console.log(error.message);
@@ -64,9 +99,21 @@ export const markMessageSeen = async (req, res) => {
 
 // send message to selected user
 export const sendMessage = async (req, res) => {
+  const paramSchema = z.object({
+    id: z.string().min(1),
+  });
+  const bodySchema = z.object({
+    text: z.string().min(1).optional(),
+    image: z.string().optional(),
+  });
+  const paramResult = paramSchema.safeParse(req.params);
+  const bodyResult = bodySchema.safeParse(req.body);
+  if (!paramResult.success || !bodyResult.success) {
+    return res.json({ success: false, message: "Invalid input", errors: [paramResult.error?.errors, bodyResult.error?.errors] });
+  }
   try {
-    const { text, image } = req.body;
-    const receiverId = req.params.id;
+    const { text, image } = bodyResult.data;
+    const { id: receiverId } = paramResult.data;
     const senderId = req.user._id;
 
     let imageUrl;
@@ -80,10 +127,10 @@ export const sendMessage = async (req, res) => {
       text,
       image: imageUrl,
     });
-    // emit the new message to receiver;s socket
+    // emit the new message to receiver's socket
     const receiverSocketId = userSocketMap[receiverId];
     if (receiverSocketId) {
-        io.to(receiverSocketId).emit("newMessage",newMessage);
+      io.to(receiverSocketId).emit("newMessage", newMessage);
     }
     res.json({ success: true, message: newMessage });
   } catch (error) {

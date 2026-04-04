@@ -10,8 +10,8 @@ import { useEffect } from 'react'
 
 const Sidebar = () => {
   const {getAllUsers, users, selectedUser, setSelectedUser,
-    unseenMessages, setUnseenMessages} = useContext(ChatContext);
-  const {logout, onlineUsers} = useContext(AuthContext);
+    unseenMessages, setUnseenMessages, loadingUsers} = useContext(ChatContext);
+  const { logout, onlineUsers, authUser } = useContext(AuthContext);
   const [input, setInput] = useState("");
   const navigate = useNavigate();
   const filteredUsers = input ? users.filter((user)=>user.fullName.toLowerCase().includes(input.toLowerCase())) : users;
@@ -19,10 +19,13 @@ const Sidebar = () => {
     getAllUsers();
   },[onlineUsers]);
   return (
-    <div className={`bg-[#8185B2]/10 h-full p-5 rounded-r-xl overflow-y-scroll text-white ${selectedUser?'max-md-hidden':''}`}>
+    <div className={`bg-[#8185B2]/10 h-full p-5 rounded-r-xl overflow-y-scroll text-white ${selectedUser?'max-md:hidden':''}`}>
       <div className='pb-5'>
         <div className="flex justify-between items-center">
-          <img src={assets.logo} alt="logo" className='max-w-40'/>
+          <div className="flex items-center gap-2">
+            <img src={assets.logo_icon} alt="logo" className="h-9 w-9 shrink-0" />
+            <span className="text-lg font-bold tracking-tight text-white">NEXCHAT</span>
+          </div>
           <div className="relative py-2 group">
               <img src={assets.menu_icon} alt="menu" className='max-h-5 cursor-pointer'/>
               <div className='absolute top-full right-0 z-20 w-32 p-5 rounded-md bg-[#282142] border
@@ -39,6 +42,10 @@ const Sidebar = () => {
         </div>
       </div>
       <div className="flex flex-col">
+        {loadingUsers && <div className="px-4 py-6 text-sm text-gray-300">Loading conversations...</div>}
+        {!loadingUsers && filteredUsers.length === 0 && authUser && (
+          <div className="px-4 py-6 text-sm text-gray-400">No users found.</div>
+        )}
         {filteredUsers.map((user,index)=>(
           <div onClick={()=>{setSelectedUser(user); setUnseenMessages(prev => ({...prev, [user._id]: 0}))}} key={index} className={`relative flex items-center gap-2 p-2 pl-4 rounded cursor-pointer max-sm:text-sm ${selectedUser?._id === user._id && 'bg-[#282142]/50'}`}>
             <img src={user?.profilePic || assets.avatar_icon} alt="" className="w-8.75 aspect-square rounded-full" />

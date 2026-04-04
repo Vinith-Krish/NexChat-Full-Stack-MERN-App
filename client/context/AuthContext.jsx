@@ -1,3 +1,4 @@
+  // ...existing code...
 import axios from "axios";
 import { createContext, useEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -6,12 +7,15 @@ import { io } from "socket.io-client";
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 export const AuthContext = createContext();
 axios.defaults.baseURL = backendUrl;
+axios.defaults.withCredentials = true;
 
 export const AuthProvider = ({ children }) => {
-  const [token, setToken] = useState(localStorage.getItem("token"));
+  // Remove token state, use only authUser
   const [authUser, setAuthUser] = useState(null);
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [socket, setSocket] = useState(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   // check if user is authenticated if so set the user data and connect the socket
   const checkAuth = async () => {
     try {
@@ -19,50 +23,68 @@ export const AuthProvider = ({ children }) => {
       if (data.success) {
         setAuthUser(data.user);
         connectSocket(data.user);
+      } else {
+        setAuthUser(null);
       }
     } catch (error) {
-      toast.error(error.message);
+      setAuthUser(null);
+      // Suppress 401 errors on initial load
+      if (error.response?.status !== 401) {
+        toast.error(error.message);
+      }
+    } finally {
+      setIsAuthLoading(false);
     }
   };
   // Login function to handle user authentication and socket connection
   const login = async (state, credentials) => {
     try {
-      const { data } = await axios.post(`/api/auth/${state}`, credentials);
+      const { data } = await axios.post(`/api/auth/${state}`, credentials, { withCredentials: true });
       if (data.success) {
         setAuthUser(data.userData);
         connectSocket(data.userData);
-        axios.defaults.headers.common["token"] = data.token;
-        setToken(data.token);
-        localStorage.setItem("token", data.token);
         toast.success(data.message);
+        return true;
       } else {
         toast.error(data.message);
+        return false;
       }
     } catch (error) {
       toast.error(error.message);
+      return false;
     }
   };
 
   // Logout function to handle user logout and socket disconnection
   const logout = async () => {
-    localStorage.removeItem("token");
-    setToken(null);
+    try {
+      await axios.post("/api/auth/logout", {}, { withCredentials: true });
+    } catch (e) {}
     setAuthUser(null);
     setOnlineUsers([]);
-    axios.defaults.headers.common["token"] = null;
     toast.success("Logged out successfully");
-    socket.disconnect();
+    socket?.disconnect();
+    setSocket(null);
   };
   // update profile function to handle user profile updates
   const updateProfile = async (body) => {
     try {
-      const { data } = await axios.put("/api/auth/update-profile", body);
+      setIsUpdatingProfile(true);
+      const { data } = await axios.put("/api/auth/update-profile", body, { withCredentials: true });
       if (data.success) {
-        setAuthUser(data.userData);
+        // Refresh user data after update
+        const refreshed = await axios.get("/api/auth/check");
+        setAuthUser(refreshed.data.user);
         toast.success("Profile updated successfully");
+        return true;
       }
+      toast.error(data.message);
+      return false;
     } catch (error) {
       toast.error(error.message);
+      return false;
+    } finally {
+      setIsUpdatingProfile(false);
     }
   };
 
@@ -82,10 +104,8 @@ export const AuthProvider = ({ children }) => {
     setSocket(newSocket);
   };
   useEffect(() => {
-    if (token) {
-      axios.defaults.headers.common["token"] = token;
-    }
     checkAuth();
+    // eslint-disable-next-line
   }, []);
   const value = {
     axios,
@@ -95,6 +115,9 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     updateProfile,
+    isAuthLoading,
+    isUpdatingProfile,
+    // ...existing code...
   };
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
