@@ -1,7 +1,7 @@
 
 
 import express from "express";
-import { checkAuth, login, signup, updateProfile, logout, forgotPassword, verifyResetOtp, resetPassword } from "../controllers/userController.js";
+import { checkAuth, login, signup, updateProfile, logout, resetPassword, generateRecoveryCode } from "../controllers/userController.js";
 import { protectRoute } from "../middleware/auth.js";
 
 const userRouter = express.Router();
@@ -11,8 +11,7 @@ userRouter.post("/login", login);
 userRouter.post("/logout", logout);
 userRouter.put("/update-profile", protectRoute, updateProfile);
 userRouter.get("/check", protectRoute, checkAuth);
-userRouter.post("/forgot-password", forgotPassword);
-userRouter.post("/verify-reset-otp", verifyResetOtp);
+userRouter.post("/recovery-code", protectRoute, generateRecoveryCode);
 userRouter.post("/reset-password", resetPassword);
 
 export default userRouter;

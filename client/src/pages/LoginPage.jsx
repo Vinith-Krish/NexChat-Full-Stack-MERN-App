@@ -43,7 +43,7 @@ const LoginPage = () => {
           className="p-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
         <div className="text-right mt-1">
-          <span onClick={() => navigate('/forgot-password')} className="text-sm text-violet-400 hover:underline cursor-pointer">Forgot Password?</span>
+          <span onClick={() => navigate('/recover-password')} className="text-sm text-violet-400 hover:underline cursor-pointer">Reset with recovery code</span>
         </div>
 
         <button

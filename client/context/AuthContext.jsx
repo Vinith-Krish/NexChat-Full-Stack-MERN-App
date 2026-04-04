@@ -16,6 +16,7 @@ export const AuthProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+  const [isGeneratingRecoveryCode, setIsGeneratingRecoveryCode] = useState(false);
   // check if user is authenticated if so set the user data and connect the socket
   const checkAuth = async () => {
     try {
@@ -44,7 +45,7 @@ export const AuthProvider = ({ children }) => {
         setAuthUser(data.userData);
         connectSocket(data.userData);
         toast.success(data.message);
-        return true;
+        return data;
       } else {
         toast.error(data.message);
         return false;
@@ -52,6 +53,24 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       toast.error(error.message);
       return false;
+    }
+  };
+
+  const generateRecoveryCode = async () => {
+    try {
+      setIsGeneratingRecoveryCode(true);
+      const { data } = await axios.post("/api/auth/recovery-code", {}, { withCredentials: true });
+      if (data.success) {
+        toast.success(data.message);
+        return data.recoveryCode;
+      }
+      toast.error(data.message);
+      return null;
+    } catch (error) {
+      toast.error(error.message);
+      return null;
+    } finally {
+      setIsGeneratingRecoveryCode(false);
     }
   };
 
@@ -115,9 +134,10 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     updateProfile,
+    generateRecoveryCode,
     isAuthLoading,
     isUpdatingProfile,
-    // ...existing code...
+    isGeneratingRecoveryCode,
   };
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

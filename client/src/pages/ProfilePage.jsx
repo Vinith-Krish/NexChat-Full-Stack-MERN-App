@@ -2,13 +2,15 @@ import React , { useContext, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import assets from '../assets/assets'
 import { AuthContext } from '../../context/AuthContext'
+import toast from 'react-hot-toast';
 const ProfilePage = () => {
-  const {authUser,updateProfile,isUpdatingProfile} = useContext(AuthContext);
+  const {authUser,updateProfile,isUpdatingProfile,generateRecoveryCode,isGeneratingRecoveryCode} = useContext(AuthContext);
   const [selectedImage,setSelectedImage]= useState(null)
   const navigate = useNavigate();
   const [name,setName]= useState(authUser.fullName);
   const [bio,setBio]= useState(authUser.bio);
   const [previewUrl,setPreviewUrl] = useState(authUser?.profilePic || assets.avatar_icon);
+  const [recoveryCode, setRecoveryCode] = useState('');
 
   useEffect(()=>{
     setName(authUser.fullName);
@@ -43,6 +45,15 @@ const ProfilePage = () => {
       if(success) navigate("/")
     }
   }
+
+  const handleGenerateRecoveryCode = async () => {
+    if (!window.confirm('Generate a new recovery code? The old one will stop working.')) return;
+    const code = await generateRecoveryCode();
+    if (code) {
+      setRecoveryCode(code);
+      toast.success('New recovery code generated. Save it now.');
+    }
+  };
   return (
     <div className='min-h-screen bg-cover bg-no-repeat flex 
     items-center justify-center'>
@@ -63,6 +74,14 @@ const ProfilePage = () => {
               <textarea onChange={(e) => setBio(e.target.value)} value={bio} placeholder='Write profile bio' required className='p-2
                   border border-gray-500 rounded-md focus:outline-none focus:ring-2
                   focus:ring-violet-500' rows={4}></textarea>
+                  <button type="button" onClick={handleGenerateRecoveryCode} disabled={isGeneratingRecoveryCode} className='bg-white/10 text-white p-2 rounded-full text-sm cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed'>
+                    {isGeneratingRecoveryCode ? 'Generating recovery code...' : 'Generate new recovery code'}
+                  </button>
+                  {recoveryCode && (
+                    <div className='rounded-lg border border-emerald-500/30 bg-emerald-950/25 p-3 text-sm font-mono tracking-widest break-all'>
+                      {recoveryCode}
+                    </div>
+                  )}
                   <button type='submit' disabled={isUpdatingProfile} className='bg-linear-to-r from-purple-400
                   to-violet-600 text-white p-2 rounded-full text-lg cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed'>{isUpdatingProfile ? 'Saving...' : 'Save'}</button>
         </form>

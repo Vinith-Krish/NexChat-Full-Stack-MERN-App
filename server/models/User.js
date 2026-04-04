@@ -6,10 +6,9 @@ const userSchema = new mongoose.Schema({
     fullName:{type: String, required: true},
     profilePic:{type: String, default:""},
     bio:{type: String},
-    resetPasswordToken: String,
-    resetPasswordExpires: Date,
-    passwordResetOtpHash: String,
-    passwordResetOtpExpires: Date,
+    tokenVersion:{type: Number, default: 0},
+    recoveryCodeHash: String,
+    recoveryCodeIssuedAt: Date,
 
 },{timestamps: true})
 
