@@ -2,6 +2,7 @@ import React, { useContext, useState } from 'react';
 import assets from '../assets/assets';
 import { AuthContext } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
+import { Link } from 'react-router-dom';
 
 const SignupPage = () => {
   const [fullName, setFullName] = useState('');
@@ -56,7 +57,7 @@ const SignupPage = () => {
           </div>
           <div className='flex gap-3'>
             <button onClick={copyRecoveryCode} type='button' className='flex-1 py-3 bg-emerald-600 text-white rounded-md'>Copy code</button>
-            <a href='/login' className='flex-1 py-3 text-center bg-linear-to-r from-purple-400 to-violet-600 text-white rounded-md'>Go to login</a>
+            <Link to='/login' className='flex-1 py-3 text-center bg-linear-to-r from-purple-400 to-violet-600 text-white rounded-md'>Go to login</Link>
           </div>
           <p className='text-xs text-gray-400'>
             Keep this code safe. If you lose it, you will need to regenerate a new one while logged in.
@@ -110,7 +111,7 @@ const SignupPage = () => {
           </div>
           <p className='text-sm text-gray-600'>
             Already have an account?{' '}
-            <a href='/login' className='font-medium text-violet-500 cursor-pointer'>Login here</a>
+            <Link to='/login' className='font-medium text-violet-500 cursor-pointer'>Login here</Link>
           </p>
         </form>
       )}
