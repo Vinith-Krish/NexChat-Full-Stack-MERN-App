@@ -22,6 +22,7 @@ function getCookieOptions() {
         httpOnly: true,
         secure: isProduction,
         sameSite: isProduction ? "none" : "lax",
+        path: "/",
         maxAge: 7 * 24 * 60 * 60 * 1000,
     };
 }
@@ -150,6 +151,7 @@ export const logout = (req, res) => {
         httpOnly: cookieOptions.httpOnly,
         secure: cookieOptions.secure,
         sameSite: cookieOptions.sameSite,
+        path: cookieOptions.path,
     });
     res.json({ success: true, message: "Logged out" });
 };
