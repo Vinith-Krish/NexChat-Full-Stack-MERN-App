@@ -22,7 +22,10 @@ const LoginPage = () => {
 
   return (
     <div className='min-h-screen px-4 py-8 flex items-center justify-center gap-8 sm:justify-evenly max-sm:flex-col backdrop-blur-2xl'>
-      <img src={assets.logo_icon} alt="" className="w-[min(30vw,250px)]" />
+      <div className='flex flex-col items-center gap-3'>
+        <img src={assets.logo_icon} alt="" className="w-[min(30vw,250px)]" />
+        <p className='text-2xl font-semibold tracking-wide text-white'>NexChat</p>
+      </div>
 
       <form onSubmit={onSubmitHandler} action="" className="w-full max-w-md border border-white/20 bg-white/8 text-white p-6 flex flex-col gap-6 rounded-2xl shadow-2xl backdrop-blur-xl">
         <h2 className="font-medium text-2xl">Login</h2>
