@@ -3,6 +3,7 @@ import Message from "../models/Message.js";
 import User from "../models/User.js";
 import { io, userSocketMap } from "../server.js";
 import { z } from "zod";
+import { encryptMessage, decryptMessage } from "../lib/encryption.js";
 // get all users except the logged in user
 export const getUsersForSidebar = async (req, res) => {
   try {
@@ -49,6 +50,12 @@ export const getMessages = async (req, res) => {
       ],
     }).sort({ createdAt: 1 });
 
+    // Decrypt all messages
+    const decryptedMessages = messages.map((msg) => ({
+      ...msg.toObject(),
+      text: decryptMessage(msg.text),
+    }));
+
     const unseenMessages = await Message.find({
       senderId: selectedUserId,
       receiverId: myId,
@@ -66,7 +73,7 @@ export const getMessages = async (req, res) => {
         io.to(senderSocketId).emit("messageSeen", { messageId: message._id });
       }
     });
-    res.json({ success: true, messages });
+    res.json({ success: true, messages: decryptedMessages });
   } catch (error) {
     console.log(error.message);
     res.json({ success: false, message: "Error fetching messages" });
@@ -121,18 +128,29 @@ export const sendMessage = async (req, res) => {
       const uploadResponse = await cloudinary.uploader.upload(image);
       imageUrl = uploadResponse.secure_url;
     }
+    
+    // Encrypt the text before saving
+    const encryptedText = encryptMessage(text);
+    
     const newMessage = await Message.create({
       senderId,
       receiverId,
-      text,
+      text: encryptedText,
       image: imageUrl,
     });
+    
+    // Decrypt for real-time socket emission (receiver sees unencrypted)
+    const decryptedMessage = {
+      ...newMessage.toObject(),
+      text: text,
+    };
+    
     // emit the new message to receiver's socket
     const receiverSocketId = userSocketMap[receiverId];
     if (receiverSocketId) {
-      io.to(receiverSocketId).emit("newMessage", newMessage);
+      io.to(receiverSocketId).emit("newMessage", decryptedMessage);
     }
-    res.json({ success: true, message: newMessage });
+    res.json({ success: true, message: decryptedMessage });
   } catch (error) {
     console.log(error.message);
     res.json({ success: false, message: "Error sending message" });
