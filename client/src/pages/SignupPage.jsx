@@ -214,10 +214,10 @@ const SignupPage = () => {
                         <select
                             value={experienceLevel}
                             onChange={(e) => setExperienceLevel(e.target.value)}
-                            className='w-full p-2 border border-gray-500 rounded-md text-white'
+                            className='w-full p-2 border border-gray-500 rounded-md bg-black text-white'
                         >
                             {EXPERIENCE_LEVELS.map(level => (
-                                <option key={level} value={level}>{level}</option>
+                                <option key={level} value={level} className='bg-black text-white'>{level}</option>
                             ))}
                         </select>
                     </div>
