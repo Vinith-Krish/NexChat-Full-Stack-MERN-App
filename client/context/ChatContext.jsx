@@ -45,12 +45,20 @@ export const ChatProvider = ({ children }) => {
             );
         };
 
+        const handleMessageDeleted = ({ messageId }) => {
+            setMessages((prevMessages) =>
+                prevMessages.filter((message) => String(message._id) !== String(messageId))
+            );
+        };
+
         socket.on("newMessage", handleNewMessage);
         socket.on("messageSeen", handleMessageSeen);
+        socket.on("messageDeleted", handleMessageDeleted);
 
         return () => {
             socket.off("newMessage", handleNewMessage);
             socket.off("messageSeen", handleMessageSeen);
+            socket.off("messageDeleted", handleMessageDeleted);
         };
     }, [socket, selectedUser, axios]);
 
@@ -104,6 +112,17 @@ export const ChatProvider = ({ children }) => {
         }
     };
 
+    const deleteMessage = async (messageId) => {
+        try {
+            const { data } = await axios.delete(`/api/messages/${messageId}`);
+            if (!data.success) {
+                toast.error(data.message);
+            }
+        } catch (error) {
+            toast.error(error.message);
+        }
+    };
+
     const value = {
         messages,
         users,
@@ -111,6 +130,7 @@ export const ChatProvider = ({ children }) => {
         getAllUsers,
         getMessages,
         sendMessage,
+        deleteMessage,
         setSelectedUser,
         unseenMessages,
         setUnseenMessages,

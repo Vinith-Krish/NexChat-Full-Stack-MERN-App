@@ -11,14 +11,17 @@ const ChatContainer = () => {
     selectedUser,
     setSelectedUser,
     sendMessage,
+    deleteMessage,
     getMessages,
     loadingMessages,
     sendingMessage,
   } = useContext(ChatContext)
   const { authUser, onlineUsers } = useContext(AuthContext)
   const scrollEnd = useRef(null)
+  const menuRef = useRef(null)
   const [input, setInput] = useState('')
   const [replyingTo, setReplyingTo] = useState(null)
+  const [openMenuFor, setOpenMenuFor] = useState(null)
 
   const getReplySenderLabel = (message) => {
     if (!message) return ''
@@ -39,6 +42,7 @@ const ChatContainer = () => {
     await sendMessage({ text: input, replyToMessageId: replyingTo?._id })
     setInput('')
     setReplyingTo(null)
+    setOpenMenuFor(null)
   }
 
   const handleSendImage = async (e) => {
@@ -54,6 +58,7 @@ const ChatContainer = () => {
     reader.onloadend = async () => {
       await sendMessage({ image: reader.result, replyToMessageId: replyingTo?._id })
       setReplyingTo(null)
+      setOpenMenuFor(null)
       e.target.value = ''
     }
     reader.readAsDataURL(file)
@@ -66,7 +71,19 @@ const ChatContainer = () => {
   }, [selectedUser])
 
   useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setOpenMenuFor(null)
+      }
+    }
+
+    document.addEventListener('mousedown', handleOutsideClick)
+    return () => document.removeEventListener('mousedown', handleOutsideClick)
+  }, [])
+
+  useEffect(() => {
     setReplyingTo(null)
+    setOpenMenuFor(null)
   }, [selectedUser?._id])
 
   useEffect(() => {
@@ -74,6 +91,36 @@ const ChatContainer = () => {
       scrollEnd.current.scrollIntoView({ behavior: 'smooth' })
     }
   }, [messages])
+
+  const handleCopyMessage = async (msg) => {
+    try {
+      const valueToCopy = msg.text || msg.image
+      if (!valueToCopy) {
+        toast.error('Nothing to copy')
+        return
+      }
+      await navigator.clipboard.writeText(valueToCopy)
+      toast.success('Copied')
+      setOpenMenuFor(null)
+    } catch {
+      toast.error('Clipboard access failed')
+    }
+  }
+
+  const handleForwardToComposer = (msg) => {
+    if (msg.text) {
+      setInput(`Fwd: ${msg.text}`)
+      toast.success('Added to composer')
+    } else if (msg.image) {
+      toast('Forwarding images is not available yet')
+    }
+    setOpenMenuFor(null)
+  }
+
+  const handleDeleteMessage = async (msg) => {
+    await deleteMessage(msg._id)
+    setOpenMenuFor(null)
+  }
 
   return selectedUser ? (
     <div className='h-full overflow-scroll relative backdrop-blur-lg'>
@@ -87,7 +134,7 @@ const ChatContainer = () => {
         <img src={assets.help_icon} alt="" className="max-md:hidden max-w-5" />
       </div>
 
-      <div className="flex flex-col h-[calc(100%-120px)] overflow-y-auto p-3 pb-6 gap-4">
+      <div ref={menuRef} className="flex flex-col h-[calc(100%-120px)] overflow-y-auto p-3 pb-6 gap-4">
         {loadingMessages && <div className="text-center text-sm text-gray-300 py-6">Loading messages...</div>}
         {!loadingMessages && messages.length === 0 && (
           <div className="text-center text-sm text-gray-400 py-6">No messages yet. Start the conversation.</div>
@@ -97,7 +144,7 @@ const ChatContainer = () => {
           const isOwnMessage = String(msg.senderId) === String(authUser._id)
 
           return (
-            <div id={`message-${msg._id}`} key={msg._id} className={`group flex gap-2 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
+            <div id={`message-${msg._id}`} key={msg._id} className={`flex gap-2 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
               <div className={`flex items-end gap-2 max-w-[85%] ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}>
                 <img
                   src={isOwnMessage ? authUser?.profilePic || assets.avatar_icon : selectedUser?.profilePic || assets.avatar_icon}
@@ -105,7 +152,49 @@ const ChatContainer = () => {
                   className="w-7 h-7 rounded-full object-cover shrink-0"
                 />
 
-                <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'}`}>
+                <div className={`relative flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'}`}>
+                  <button
+                    onClick={() => setOpenMenuFor((prev) => (prev === msg._id ? null : msg._id))}
+                    className="absolute -top-1 right-0 z-10 text-[11px] px-1.5 py-0.5 rounded bg-black/35 text-gray-200 hover:text-white"
+                    title="Message options"
+                  >
+                    <span className="inline-block -rotate-45">-&gt;</span>
+                  </button>
+
+                  {openMenuFor === msg._id && (
+                    <div className="absolute top-5 right-0 z-20 min-w-20 bg-gray-900 border border-gray-700 rounded-md shadow-lg overflow-hidden">
+                      <button
+                        onClick={() => {
+                          setReplyingTo(msg)
+                          setOpenMenuFor(null)
+                        }}
+                        className="w-full px-3 py-2 text-left text-xs text-gray-100 hover:bg-gray-800"
+                      >
+                        Reply
+                      </button>
+                      <button
+                        onClick={() => handleCopyMessage(msg)}
+                        className="w-full px-3 py-2 text-left text-xs text-gray-100 hover:bg-gray-800"
+                      >
+                        Copy
+                      </button>
+                      <button
+                        onClick={() => handleForwardToComposer(msg)}
+                        className="w-full px-3 py-2 text-left text-xs text-gray-100 hover:bg-gray-800"
+                      >
+                        Forward
+                      </button>
+                      {isOwnMessage && (
+                        <button
+                          onClick={() => handleDeleteMessage(msg)}
+                          className="w-full px-3 py-2 text-left text-xs text-red-300 hover:bg-gray-800"
+                        >
+                          Delete
+                        </button>
+                      )}
+                    </div>
+                  )}
+
                   {msg.replyTo?.messageId && (
                     <button
                       onClick={() => jumpToMessage(msg.replyTo.messageId)}
@@ -139,12 +228,6 @@ const ChatContainer = () => {
                       {msg.text}
                     </p>
                   )}
-                  <button
-                    onClick={() => setReplyingTo(msg)}
-                    className={`mt-1 text-[11px] text-gray-400 hover:text-white hidden group-hover:block ${isOwnMessage ? 'self-end' : 'self-start'}`}
-                  >
-                    Reply
-                  </button>
                   <div className="flex items-center gap-2 text-[11px] text-gray-400 mt-1">
                     <p>{formatMessageTime(msg.createdAt)}</p>
                     {isOwnMessage && <p>{msg.seen ? 'Seen' : 'Sent'}</p>}

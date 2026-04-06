@@ -104,6 +104,47 @@ export const markMessageSeen = async (req, res) => {
   }
 };
 
+// delete a message by id (only sender can delete)
+export const deleteMessage = async (req, res) => {
+  const schema = z.object({
+    id: z.string().min(1),
+  });
+  const parseResult = schema.safeParse(req.params);
+  if (!parseResult.success) {
+    return res.json({ success: false, message: "Invalid message id", errors: parseResult.error.errors });
+  }
+
+  try {
+    const { id } = parseResult.data;
+    const userId = req.user._id;
+
+    const message = await Message.findById(id);
+    if (!message) {
+      return res.json({ success: false, message: "Message not found" });
+    }
+
+    if (String(message.senderId) !== String(userId)) {
+      return res.json({ success: false, message: "Not authorized to delete this message" });
+    }
+
+    await Message.findByIdAndDelete(id);
+
+    const senderSocketId = userSocketMap[String(message.senderId)];
+    const receiverSocketId = userSocketMap[String(message.receiverId)];
+    if (senderSocketId) {
+      io.to(senderSocketId).emit("messageDeleted", { messageId: message._id });
+    }
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("messageDeleted", { messageId: message._id });
+    }
+
+    res.json({ success: true, message: "Message deleted" });
+  } catch (error) {
+    console.log(error.message);
+    res.json({ success: false, message: "Error deleting message" });
+  }
+};
+
 // send message to selected user
 export const sendMessage = async (req, res) => {
   const paramSchema = z.object({
