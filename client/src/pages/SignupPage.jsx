@@ -150,7 +150,7 @@ const SignupPage = () => {
                         onChange={(e) => setFullName(e.target.value)}
                         value={fullName}
                         type='text'
-                        className='p-2 border border-gray-500 rounded-md focus:outline-none text-black'
+                        className='p-2 border border-gray-500 rounded-md focus:outline-none text-white'
                         placeholder='Full Name'
                         required
                     />
