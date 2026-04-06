@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import assets from '../assets/assets'
 import { AuthContext } from '../../context/AuthContext'
 import toast from 'react-hot-toast';
+import axios from 'axios';
 const ProfilePage = () => {
   const {authUser,updateProfile,isUpdatingProfile,generateRecoveryCode,isGeneratingRecoveryCode} = useContext(AuthContext);
   const [selectedImage,setSelectedImage]= useState(null)
@@ -11,6 +12,10 @@ const ProfilePage = () => {
   const [bio,setBio]= useState(authUser.bio);
   const [previewUrl,setPreviewUrl] = useState(authUser?.profilePic || assets.avatar_icon);
   const [recoveryCode, setRecoveryCode] = useState('');
+  // Skills update form
+const [isEditingSkills, setIsEditingSkills] = useState(false);
+const [tempSkills, setTempSkills] = useState(authUser?.skills || []);
+const [tempLookingFor] = useState(authUser?.lookingFor || []);
 
   useEffect(()=>{
     setName(authUser.fullName);
@@ -54,41 +59,114 @@ const ProfilePage = () => {
       toast.success('New recovery code generated. Save it now.');
     }
   };
+  const handleUpdateSkills = async () => {
+    try {
+        const { data } = await axios.put('/api/auth/skills-profile', {
+            skills: tempSkills,
+            lookingFor: tempLookingFor,
+        });
+        if (data.success) {
+            // Update local user state
+            toast.success('Skills updated');
+            setIsEditingSkills(false);
+        }
+    } catch (error) {
+        toast.error('Error updating skills'+error.message);
+    }
+};
+  const SKILL_OPTIONS = (authUser?.skills || []).map((skill) => skill.name);
+
   return (
-    <div className='min-h-screen bg-cover bg-no-repeat flex 
-    items-center justify-center'>
-      <div className="w-5/6 max-w-2xl backdrop-blur-2xl text-gray-300
-      border-2 border-gray-600 flex items-center justify-between
-      max-sm:flex-col-reverse rounded-lg">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5 p-10 flex-1">
-          <h3 className="text-lg">Profile Details</h3>
-          <label htmlFor="avatar" className="flex items-center gap-3 cursor-pointer">
-            <input onChange={(e) => setSelectedImage(e.target.files[0])} type="file" id="avatar"  accept=".png,.jpg,.jpeg" hidden/>
-            <img src={previewUrl} alt="Avatar" 
-            className="w-12 h-12 rounded-full object-cover" />
-            upload profile pic
-          </label>
-              <input onChange={(e) => setName(e.target.value)} value={name} type="text" required placeholder='Your name' className='p-2
-                  border border-gray-500 rounded-md focus:outline-none focus:ring-2
-                  focus:ring-violet-500' />
-              <textarea onChange={(e) => setBio(e.target.value)} value={bio} placeholder='Write profile bio' required className='p-2
-                  border border-gray-500 rounded-md focus:outline-none focus:ring-2
-                  focus:ring-violet-500' rows={4}></textarea>
-                  <button type="button" onClick={handleGenerateRecoveryCode} disabled={isGeneratingRecoveryCode} className='bg-white/10 text-white p-2 rounded-full text-sm cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed'>
-                    {isGeneratingRecoveryCode ? 'Generating recovery code...' : 'Generate new recovery code'}
-                  </button>
-                  {recoveryCode && (
-                    <div className='rounded-lg border border-emerald-500/30 bg-emerald-950/25 p-3 text-sm font-mono tracking-widest break-all'>
-                      {recoveryCode}
-                    </div>
-                  )}
-                  <button type='submit' disabled={isUpdatingProfile} className='bg-linear-to-r from-purple-400
-                  to-violet-600 text-white p-2 rounded-full text-lg cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed'>{isUpdatingProfile ? 'Saving...' : 'Save'}</button>
-        </form>
-        <img className='max-w-44 aspect-square rounded-full mx-10 max-sm:mt-10 object-cover' src={previewUrl} alt="" />
+    <div className='min-h-screen bg-cover bg-no-repeat flex items-center justify-center p-6'>
+      <div className='w-full max-w-4xl flex flex-col gap-4'>
+        <div className="backdrop-blur-2xl text-gray-300 border-2 border-gray-600 flex items-center justify-between max-sm:flex-col-reverse rounded-lg">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5 p-10 flex-1">
+            <h3 className="text-lg">Profile Details</h3>
+            <label htmlFor="avatar" className="flex items-center gap-3 cursor-pointer">
+              <input onChange={(e) => setSelectedImage(e.target.files[0])} type="file" id="avatar" accept=".png,.jpg,.jpeg" hidden />
+              <img src={previewUrl} alt="Avatar" className="w-12 h-12 rounded-full object-cover" />
+              upload profile pic
+            </label>
+            <input
+              onChange={(e) => setName(e.target.value)}
+              value={name}
+              type="text"
+              required
+              placeholder='Your name'
+              className='p-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500'
+            />
+            <textarea
+              onChange={(e) => setBio(e.target.value)}
+              value={bio}
+              placeholder='Write profile bio'
+              required
+              className='p-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500'
+              rows={4}
+            ></textarea>
+            <button type="button" onClick={handleGenerateRecoveryCode} disabled={isGeneratingRecoveryCode} className='bg-white/10 text-white p-2 rounded-full text-sm cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed'>
+              {isGeneratingRecoveryCode ? 'Generating recovery code...' : 'Generate new recovery code'}
+            </button>
+            {recoveryCode && (
+              <div className='rounded-lg border border-emerald-500/30 bg-emerald-950/25 p-3 text-sm font-mono tracking-widest break-all'>
+                {recoveryCode}
+              </div>
+            )}
+            <button type='submit' disabled={isUpdatingProfile} className='bg-linear-to-r from-purple-400 to-violet-600 text-white p-2 rounded-full text-lg cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed'>
+              {isUpdatingProfile ? 'Saving...' : 'Save'}
+            </button>
+          </form>
+          <img className='max-w-44 aspect-square rounded-full mx-10 max-sm:mt-10 object-cover' src={previewUrl} alt="" />
+        </div>
+
+        <div className='p-4 bg-white/10 rounded-lg border border-gray-700'>
+          <div className='flex items-center justify-between'>
+            <h3 className='text-white font-semibold'>Skills</h3>
+            <div className='flex items-center gap-2'>
+              {isEditingSkills && (
+                <button onClick={handleUpdateSkills} className='text-xs px-3 py-1 rounded bg-violet-600 text-white'>
+                  Update
+                </button>
+              )}
+              <button onClick={() => setIsEditingSkills(!isEditingSkills)} className='text-violet-400 text-sm'>
+                {isEditingSkills ? 'Done' : 'Edit'}
+              </button>
+            </div>
+          </div>
+
+          {isEditingSkills ? (
+            <div className='flex flex-wrap gap-2 mt-3'>
+              {SKILL_OPTIONS.map((skill) => (
+                <button
+                  key={skill}
+                  onClick={() => {
+                    if (tempSkills.find((s) => s.name === skill)) {
+                      setTempSkills(tempSkills.filter((s) => s.name !== skill));
+                    } else {
+                      setTempSkills([...tempSkills, { name: skill }]);
+                    }
+                  }}
+                  className={`px-3 py-1 rounded text-xs ${
+                    tempSkills.find((s) => s.name === skill)
+                      ? 'bg-violet-600 text-white'
+                      : 'bg-gray-700 text-gray-200'
+                  }`}
+                >
+                  {skill}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className='flex flex-wrap gap-2 mt-3'>
+              {(authUser?.skills || []).map((skill) => (
+                <span key={skill.name} className='px-3 py-1 bg-violet-600 rounded-full text-xs text-white'>
+                  {skill.name}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
 }
-
 export default ProfilePage

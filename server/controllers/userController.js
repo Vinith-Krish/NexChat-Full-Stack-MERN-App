@@ -80,20 +80,44 @@ export const signup = async (req, res) => {
         email: z.string().email(),
         password: z.string().min(6),
         bio: z.string().min(1),
+        // NEW FIELDS
+        skills: z.array(
+            z.object({
+                name: z.string().min(1),
+                proficiency: z.enum(["Beginner", "Intermediate", "Expert"]).default("Intermediate"),
+                yearsOfExperience: z.number().default(0)
+            })
+        ).optional(),
+        experienceLevel: z.enum(["Beginner", "Intermediate", "Expert"]).optional(),
+        lookingFor: z.array(z.string()).optional(),
+        portfolioLinks: z.object({
+            github: z.string().optional(),
+            linkedin: z.string().optional(),
+            portfolio: z.string().optional(),
+            behance: z.string().optional(),
+            stackoverflow: z.string().optional(),
+        }).optional(),
     });
     const parseResult = schema.safeParse(req.body);
     if (!parseResult.success) {
         return res.json({ success: false, message: "Invalid input", errors: parseResult.error.errors });
     }
-    const { fullName, email, password, bio } = parseResult.data;
+    
+    const { 
+        fullName, email, password, bio,
+        skills, experienceLevel, lookingFor, portfolioLinks 
+    } = parseResult.data;
+    
     try {
         const user = await User.findOne({ email });
         if (user) {
             return res.json({ success: false, message: "User already exists" });
         }
+        
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
         const recoveryCode = createRecoveryCode();
+        
         const newUser = new User({
             fullName,
             email,
@@ -102,13 +126,21 @@ export const signup = async (req, res) => {
             tokenVersion: 0,
             recoveryCodeHash: hashRecoveryCode(recoveryCode),
             recoveryCodeIssuedAt: new Date(),
+            // NEW
+            skills: skills || [],
+            experienceLevel: experienceLevel || "Beginner",
+            lookingFor: lookingFor || [],
+            portfolioLinks: portfolioLinks || {},
+            availableForCollaboration: true,
         });
+        
         await newUser.save();
         const userData = newUser.toObject();
         delete userData.password;
         delete userData.recoveryCodeHash;
         delete userData.recoveryCodeIssuedAt;
         delete userData.tokenVersion;
+        
         res.json({ success: true, userData, recoveryCode, message: "User created successfully" });
     } catch (error) {
         console.log(error.message);
@@ -185,5 +217,102 @@ export const updateProfile = async (req, res) => {
     } catch (error) {
         console.log(error.message);
         res.json({ success: false, message: "Error updating profile" });
+    }
+};
+
+// Update user skills and collaboration preferences
+export const updateSkillsProfile = async (req, res) => {
+    const schema = z.object({
+        skills: z.array(
+            z.object({
+                name: z.string().min(1),
+                proficiency: z.enum(["Beginner", "Intermediate", "Expert"]),
+                yearsOfExperience: z.number().optional(),
+            })
+        ).optional(),
+        experienceLevel: z.enum(["Beginner", "Intermediate", "Expert"]).optional(),
+        lookingFor: z.array(z.string()).optional(),
+        portfolioLinks: z.object({
+            github: z.string().optional(),
+            linkedin: z.string().optional(),
+            portfolio: z.string().optional(),
+            behance: z.string().optional(),
+            stackoverflow: z.string().optional(),
+        }).optional(),
+        availableForCollaboration: z.boolean().optional(),
+        currentProject: z.string().optional(),
+    });
+    
+    const parseResult = schema.safeParse(req.body);
+    if (!parseResult.success) {
+        return res.json({ success: false, message: "Invalid input", errors: parseResult.error.errors });
+    }
+    
+    const userId = req.user._id;
+    const updateData = parseResult.data;
+    
+    try {
+        const updatedUser = await User.findByIdAndUpdate(
+            userId, 
+            updateData, 
+            { new: true }
+        ).select("-password -recoveryCodeHash -recoveryCodeIssuedAt -tokenVersion");
+        
+        res.json({ success: true, userData: updatedUser, message: "Skills profile updated" });
+    } catch (error) {
+        console.log(error.message);
+        res.json({ success: false, message: "Error updating skills profile" });
+    }
+};
+
+// Get users based on skills/experience (for discovery)
+export const getUsersBySkill = async (req, res) => {
+    const schema = z.object({
+        skills: z.array(z.string()).optional(),
+        experienceLevel: z.string().optional(),
+        lookingFor: z.string().optional(),
+        limit: z.number().default(20),
+        skip: z.number().default(0),
+    });
+    
+    const parseResult = schema.safeParse(req.query);
+    if (!parseResult.success) {
+        return res.json({ success: false, message: "Invalid input", errors: parseResult.error.errors });
+    }
+    
+    const { skills, experienceLevel, lookingFor, limit, skip } = parseResult.data;
+    const userId = req.user._id;
+    
+    try {
+        let query = { _id: { $ne: userId }, availableForCollaboration: true };
+        
+        if (skills && skills.length > 0) {
+            query["skills.name"] = { $in: skills };
+        }
+        
+        if (experienceLevel) {
+            query.experienceLevel = experienceLevel;
+        }
+        
+        if (lookingFor) {
+            query.lookingFor = lookingFor;
+        }
+        
+        const users = await User.find(query)
+            .select("-password -recoveryCodeHash -recoveryCodeIssuedAt -tokenVersion")
+            .limit(limit)
+            .skip(skip);
+        
+        const total = await User.countDocuments(query);
+        
+        res.json({ 
+            success: true, 
+            users, 
+            total,
+            message: "Users found" 
+        });
+    } catch (error) {
+        console.log(error.message);
+        res.json({ success: false, message: "Error fetching users" });
     }
 };
