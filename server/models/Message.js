@@ -5,6 +5,12 @@ const messageSchema = new mongoose.Schema({
    receiverId:{type: mongoose.Schema.Types.ObjectId, required: true,ref:"User"},
    text:{type: String},
    image:{type: String},
+   replyTo: {
+      messageId: { type: mongoose.Schema.Types.ObjectId, ref: "Message" },
+      senderId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+      text: { type: String },
+      image: { type: String },
+   },
    seen:{type: Boolean, default: false}
 },{timestamps: true});
 

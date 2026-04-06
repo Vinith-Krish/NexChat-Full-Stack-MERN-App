@@ -112,6 +112,7 @@ export const sendMessage = async (req, res) => {
   const bodySchema = z.object({
     text: z.string().min(1).optional(),
     image: z.string().optional(),
+    replyToMessageId: z.string().min(1).optional(),
   });
   const paramResult = paramSchema.safeParse(req.params);
   const bodyResult = bodySchema.safeParse(req.body);
@@ -119,14 +120,40 @@ export const sendMessage = async (req, res) => {
     return res.json({ success: false, message: "Invalid input", errors: [paramResult.error?.errors, bodyResult.error?.errors] });
   }
   try {
-    const { text, image } = bodyResult.data;
+    const { text, image, replyToMessageId } = bodyResult.data;
     const { id: receiverId } = paramResult.data;
     const senderId = req.user._id;
+
+    if (!text && !image) {
+      return res.json({ success: false, message: "Message text or image is required" });
+    }
 
     let imageUrl;
     if (image) {
       const uploadResponse = await cloudinary.uploader.upload(image);
       imageUrl = uploadResponse.secure_url;
+    }
+
+    let replyToPayload;
+    if (replyToMessageId) {
+      const repliedMessage = await Message.findOne({
+        _id: replyToMessageId,
+        $or: [
+          { senderId, receiverId },
+          { senderId: receiverId, receiverId: senderId },
+        ],
+      });
+
+      if (!repliedMessage) {
+        return res.json({ success: false, message: "Replied message not found" });
+      }
+
+      replyToPayload = {
+        messageId: repliedMessage._id,
+        senderId: repliedMessage.senderId,
+        text: decryptMessage(repliedMessage.text),
+        image: repliedMessage.image,
+      };
     }
     
     // Encrypt the text before saving
@@ -137,6 +164,7 @@ export const sendMessage = async (req, res) => {
       receiverId,
       text: encryptedText,
       image: imageUrl,
+      replyTo: replyToPayload,
     });
     
     // Decrypt for real-time socket emission (receiver sees unencrypted)
