@@ -160,7 +160,7 @@ const SignupPage = () => {
                         type='email'
                         placeholder='Email Address'
                         required
-                        className='p-2 border border-gray-500 rounded-md focus:outline-none text-black'
+                        className='p-2 border border-gray-500 rounded-md focus:outline-none text-white'
                     />
                     <input
                         onChange={(e) => setPassword(e.target.value)}
@@ -168,13 +168,13 @@ const SignupPage = () => {
                         type='password'
                         placeholder='Password (min 6 chars)'
                         required
-                        className='p-2 border border-gray-500 rounded-md focus:outline-none text-black'
+                        className='p-2 border border-gray-500 rounded-md focus:outline-none text-white'
                     />
                     <textarea
                         onChange={(e) => setBio(e.target.value)}
                         value={bio}
                         rows={4}
-                        className='p-2 border border-gray-500 rounded-md focus:outline-none text-black'
+                        className='p-2 border border-gray-500 rounded-md focus:outline-none text-white'
                         placeholder='Short bio (what do you do?)'
                         required
                     ></textarea>
@@ -214,7 +214,7 @@ const SignupPage = () => {
                         <select
                             value={experienceLevel}
                             onChange={(e) => setExperienceLevel(e.target.value)}
-                            className='w-full p-2 border border-gray-500 rounded-md text-black'
+                            className='w-full p-2 border border-gray-500 rounded-md text-white'
                         >
                             {EXPERIENCE_LEVELS.map(level => (
                                 <option key={level} value={level}>{level}</option>
@@ -335,35 +335,35 @@ const SignupPage = () => {
                         placeholder='GitHub Profile'
                         value={portfolioLinks.github}
                         onChange={(e) => handlePortfolioChange('github', e.target.value)}
-                        className='p-2 border border-gray-500 rounded-md text-black text-sm'
+                        className='p-2 border border-gray-500 rounded-md text-white text-sm'
                     />
                     <input
                         type='url'
                         placeholder='LinkedIn Profile'
                         value={portfolioLinks.linkedin}
                         onChange={(e) => handlePortfolioChange('linkedin', e.target.value)}
-                        className='p-2 border border-gray-500 rounded-md text-black text-sm'
+                        className='p-2 border border-gray-500 rounded-md text-white text-sm'
                     />
                     <input
                         type='url'
                         placeholder='Portfolio Website'
                         value={portfolioLinks.portfolio}
                         onChange={(e) => handlePortfolioChange('portfolio', e.target.value)}
-                        className='p-2 border border-gray-500 rounded-md text-black text-sm'
+                        className='p-2 border border-gray-500 rounded-md text-white text-sm'
                     />
                     <input
                         type='url'
                         placeholder='Behance (Designers)'
                         value={portfolioLinks.behance}
                         onChange={(e) => handlePortfolioChange('behance', e.target.value)}
-                        className='p-2 border border-gray-500 rounded-md text-black text-sm'
+                        className='p-2 border border-gray-500 rounded-md text-white text-sm'
                     />
                     <input
                         type='url'
                         placeholder='Stack Overflow (Developers)'
                         value={portfolioLinks.stackoverflow}
                         onChange={(e) => handlePortfolioChange('stackoverflow', e.target.value)}
-                        className='p-2 border border-gray-500 rounded-md text-black text-sm'
+                        className='p-2 border border-gray-500 rounded-md text-white text-sm'
                     />
                     
                     <div className='flex gap-2'>
