@@ -145,7 +145,7 @@ const ChatContainer = () => {
 
           return (
             <div id={`message-${msg._id}`} key={msg._id} className={`flex gap-2 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
-              <div className={`flex items-end gap-2 max-w-[85%] ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}>
+              <div className={`group flex items-end gap-2 max-w-[85%] ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}>
                 <img
                   src={isOwnMessage ? authUser?.profilePic || assets.avatar_icon : selectedUser?.profilePic || assets.avatar_icon}
                   alt=""
@@ -155,7 +155,7 @@ const ChatContainer = () => {
                 <div className={`relative flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'}`}>
                   <button
                     onClick={() => setOpenMenuFor((prev) => (prev === msg._id ? null : msg._id))}
-                    className="absolute -top-1 right-0 z-10 text-[11px] px-1.5 py-0.5 rounded bg-black/35 text-gray-200 hover:text-white"
+                    className="absolute -top-1 right-0 z-10 text-[11px] px-1.5 py-0.5 rounded bg-black/35 text-gray-200 hover:text-white hidden group-hover:block"
                     title="Message options"
                   >
                     <span className="inline-block -rotate-45">-&gt;</span>
