@@ -8,10 +8,32 @@ import userRouter from "./routes/userRoutes.js";
 import messageRouter from "./routes/messageRoutes.js";
 import { Server } from "socket.io";
 
-const allowedOrigins = (process.env.CORS_ORIGINS || "http://localhost:5175")
+const normalizeOrigin = (origin = "") => origin.trim().replace(/\/+$/, "");
+
+const rawAllowedOrigins = (process.env.CORS_ORIGINS || "http://localhost:5175")
   .split(",")
-  .map((origin) => origin.trim())
+  .map((origin) => normalizeOrigin(origin))
   .filter(Boolean);
+
+const matchesAllowedOrigin = (requestOrigin) => {
+  const normalizedRequestOrigin = normalizeOrigin(requestOrigin);
+
+  return rawAllowedOrigins.some((allowedOrigin) => {
+    // Exact match
+    if (allowedOrigin === normalizedRequestOrigin) return true;
+
+    // Wildcard pattern support, e.g. https://*.vercel.app
+    if (allowedOrigin.includes("*")) {
+      const escaped = allowedOrigin
+        .replace(/[.+?^${}()|[\]\\]/g, "\\$&")
+        .replace(/\*/g, ".*");
+      const regex = new RegExp(`^${escaped}$`);
+      return regex.test(normalizedRequestOrigin);
+    }
+
+    return false;
+  });
+};
 // Create Express app and HTTP Server
 const app = express();
 const server = http.createServer(app);
@@ -47,7 +69,7 @@ app.use(cookieParser());
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
+    if (matchesAllowedOrigin(origin)) return callback(null, true);
     return callback(new Error("CORS blocked for this origin"));
   },
   credentials: true,
@@ -66,5 +88,5 @@ await connectDB();
 const PORT = process.env.PORT || 5001;
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
-  console.log(`Allowed CORS origins: ${allowedOrigins.join(", ")}`);
+  console.log(`Allowed CORS origins: ${rawAllowedOrigins.join(", ")}`);
 });
