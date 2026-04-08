@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import assets from '../assets/assets'
 import { AuthContext } from '../../context/AuthContext'
 import toast from 'react-hot-toast';
-import axios from 'axios';
 
 const SKILL_OPTIONS = [
   'JavaScript', 'Python', 'Go', 'Rust', 'Java', 'C++', 'TypeScript', 'PHP',
@@ -19,7 +18,7 @@ const SKILL_OPTIONS = [
 const MAX_SKILLS = 5;
 
 const ProfilePage = () => {
-  const {authUser,updateProfile,isUpdatingProfile,generateRecoveryCode,isGeneratingRecoveryCode} = useContext(AuthContext);
+  const {authUser,updateProfile,isUpdatingProfile,generateRecoveryCode,isGeneratingRecoveryCode,axios} = useContext(AuthContext);
   const [selectedImage,setSelectedImage]= useState(null)
   const navigate = useNavigate();
   const [name,setName]= useState(authUser.fullName);
@@ -79,8 +78,14 @@ const [tempLookingFor] = useState(authUser?.lookingFor || []);
   };
   const handleUpdateSkills = async () => {
     try {
+      const normalizedSkills = tempSkills.map((skill) => ({
+        name: skill.name,
+        proficiency: skill.proficiency || authUser?.experienceLevel || 'Beginner',
+        yearsOfExperience: Number.isFinite(skill.yearsOfExperience) ? skill.yearsOfExperience : 0,
+      }));
+
         const { data } = await axios.put('/api/auth/skills-profile', {
-            skills: tempSkills,
+        skills: normalizedSkills,
             lookingFor: tempLookingFor,
         });
         if (data.success) {
@@ -88,9 +93,11 @@ const [tempLookingFor] = useState(authUser?.lookingFor || []);
             toast.success('Skills updated');
             setIsEditingSkills(false);
         navigate('/');
+      } else {
+        toast.error(data.message || 'Unable to update skills');
         }
     } catch (error) {
-        toast.error('Error updating skills'+error.message);
+      toast.error(error.response?.data?.message || error.message || 'Error updating skills');
     }
 };
 
@@ -107,7 +114,14 @@ const [tempLookingFor] = useState(authUser?.lookingFor || []);
       return;
     }
 
-    setTempSkills([...tempSkills, { name: skillName }]);
+    setTempSkills([
+      ...tempSkills,
+      {
+        name: skillName,
+        proficiency: authUser?.experienceLevel || 'Beginner',
+        yearsOfExperience: 0,
+      },
+    ]);
   };
 
   return (
