@@ -68,7 +68,7 @@ const ChatContainer = () => {
     if (selectedUser) {
       getMessages(selectedUser._id)
     }
-  }, [selectedUser])
+  }, [selectedUser, getMessages])
 
   useEffect(() => {
     const handleOutsideClick = (event) => {

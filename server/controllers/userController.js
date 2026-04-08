@@ -100,7 +100,7 @@ export const signup = async (req, res) => {
     });
     const parseResult = schema.safeParse(req.body);
     if (!parseResult.success) {
-        return res.json({ success: false, message: "Invalid input", errors: parseResult.error.errors });
+        return res.status(400).json({ success: false, message: "Invalid input", errors: parseResult.error.errors });
     }
     
     const { 
@@ -111,7 +111,7 @@ export const signup = async (req, res) => {
     try {
         const user = await User.findOne({ email });
         if (user) {
-            return res.json({ success: false, message: "User already exists" });
+            return res.status(409).json({ success: false, message: "User already exists" });
         }
         
         const salt = await bcrypt.genSalt(10);
@@ -144,7 +144,7 @@ export const signup = async (req, res) => {
         res.json({ success: true, userData, recoveryCode, message: "User created successfully" });
     } catch (error) {
         console.log(error.message);
-        res.json({ success: false, message: "Error creating user" });
+        res.status(500).json({ success: false, message: "Error creating user" });
     }
 };
 // Controller to login a user
@@ -155,17 +155,17 @@ export const login = async (req, res) => {
     });
     const parseResult = schema.safeParse(req.body);
     if (!parseResult.success) {
-        return res.json({ success: false, message: "Invalid input", errors: parseResult.error.errors });
+        return res.status(400).json({ success: false, message: "Invalid input", errors: parseResult.error.errors });
     }
     const { email, password } = parseResult.data;
     try {
         const userData = await User.findOne({ email });
         if (!userData) {
-            return res.json({ success: false, message: "User not found" });
+            return res.status(404).json({ success: false, message: "User not found" });
         }
         const isPassword = await bcrypt.compare(password, userData.password);
         if (!isPassword) {
-            return res.json({ success: false, message: "Invalid credentials" });
+            return res.status(401).json({ success: false, message: "Invalid credentials" });
         }
         const token = generateToken(userData);
         const safeUser = await User.findById(userData._id).select("-password -recoveryCodeHash -recoveryCodeIssuedAt -tokenVersion");
@@ -173,7 +173,7 @@ export const login = async (req, res) => {
         res.json({ success: true, userData: safeUser, message: "User logged in successfully" });
     } catch (error) {
         console.log(error.message);
-        res.json({ success: false, message: "Error logging in" });
+        res.status(500).json({ success: false, message: "Error logging in" });
     }
 };
 // Logout controller to clear cookie
@@ -201,7 +201,7 @@ export const updateProfile = async (req, res) => {
     });
     const parseResult = schema.safeParse(req.body);
     if (!parseResult.success) {
-        return res.json({ success: false, message: "Invalid input", errors: parseResult.error.errors });
+        return res.status(400).json({ success: false, message: "Invalid input", errors: parseResult.error.errors });
     }
     const { fullName, bio, profilePic } = parseResult.data;
     const userId = req.user._id;
@@ -216,7 +216,7 @@ export const updateProfile = async (req, res) => {
         res.json({ success: true, userData: updatedUser, message: "Profile updated successfully" });
     } catch (error) {
         console.log(error.message);
-        res.json({ success: false, message: "Error updating profile" });
+        res.status(500).json({ success: false, message: "Error updating profile" });
     }
 };
 
@@ -245,7 +245,7 @@ export const updateSkillsProfile = async (req, res) => {
     
     const parseResult = schema.safeParse(req.body);
     if (!parseResult.success) {
-        return res.json({ success: false, message: "Invalid input", errors: parseResult.error.errors });
+        return res.status(400).json({ success: false, message: "Invalid input", errors: parseResult.error.errors });
     }
     
     const userId = req.user._id;
@@ -261,7 +261,7 @@ export const updateSkillsProfile = async (req, res) => {
         res.json({ success: true, userData: updatedUser, message: "Skills profile updated" });
     } catch (error) {
         console.log(error.message);
-        res.json({ success: false, message: "Error updating skills profile" });
+        res.status(500).json({ success: false, message: "Error updating skills profile" });
     }
 };
 
@@ -277,7 +277,7 @@ export const getUsersBySkill = async (req, res) => {
     
     const parseResult = schema.safeParse(req.query);
     if (!parseResult.success) {
-        return res.json({ success: false, message: "Invalid input", errors: parseResult.error.errors });
+        return res.status(400).json({ success: false, message: "Invalid input", errors: parseResult.error.errors });
     }
     
     const { skills, experienceLevel, lookingFor, limit, skip } = parseResult.data;
@@ -313,6 +313,6 @@ export const getUsersBySkill = async (req, res) => {
         });
     } catch (error) {
         console.log(error.message);
-        res.json({ success: false, message: "Error fetching users" });
+        res.status(500).json({ success: false, message: "Error fetching users" });
     }
 };

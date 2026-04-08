@@ -17,7 +17,7 @@ const Sidebar = () => {
   const filteredUsers = input ? users.filter((user)=>user.fullName.toLowerCase().includes(input.toLowerCase())) : users;
   useEffect(()=>{
     getAllUsers();
-  },[onlineUsers]);
+  },[onlineUsers, getAllUsers]);
   return (
     <div className={`bg-[#8185B2]/10 h-full p-5 rounded-r-xl overflow-y-scroll text-white ${selectedUser?'max-md:hidden':''}`}>
       <div className='pb-5'>

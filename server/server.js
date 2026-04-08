@@ -40,7 +40,15 @@ const server = http.createServer(app);
 
 // intialize socket.io server
 export const io = new Server(server, {
-  cors: { origin: "*" },
+  cors: {
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (matchesAllowedOrigin(origin)) return callback(null, true);
+      return callback(new Error("Socket CORS blocked for this origin"));
+    },
+    credentials: true,
+    methods: ["GET", "POST"],
+  },
 });
 // store online users
 export const userSocketMap = {}; // {userId: socketId}

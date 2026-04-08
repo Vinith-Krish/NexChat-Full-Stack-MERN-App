@@ -36,6 +36,33 @@ chat-app/
 └── server/
 ```
 
+## Architecture
+
+```mermaid
+flowchart LR
+	U[User Browser]
+	C[React + Vite Client]
+	API[Express API]
+	WS[Socket.IO Server]
+	DB[(MongoDB)]
+	CD[Cloudinary]
+
+	U --> C
+	C -->|HTTP + Cookies| API
+	C <-->|Realtime Events| WS
+	API --> DB
+	API --> CD
+	WS --> DB
+```
+
+### Request/Realtime Flow
+
+1. User authenticates from client, backend sets JWT cookie.
+2. Client calls protected REST APIs with cookie credentials.
+3. Client opens Socket.IO connection with current user id.
+4. Server maps user id to socket id and emits online presence/events.
+5. Messages are persisted in MongoDB and broadcast in realtime when receiver is online.
+
 ## Local Setup
 
 ### Backend
@@ -79,6 +106,40 @@ VITE_BACKEND_URL=http://localhost:5001
 - The recovery code is shown once to the user.
 - Password reset uses email + recovery code + new password.
 - Logged-in users can generate a new recovery code from their profile page.
+
+## API Overview
+
+Base URL:
+
+- Local backend: `http://localhost:5001`
+
+Auth routes (`/api/auth`):
+
+- `POST /signup` - Register user and return one-time recovery code
+- `POST /login` - Login and set auth cookie
+- `POST /logout` - Clear auth cookie
+- `GET /check` - Validate current session (protected)
+- `PUT /update-profile` - Update name/bio/profile picture (protected)
+- `PUT /skills-profile` - Update skills and collaboration profile (protected)
+- `GET /discover` - Discover collaborators by filter (protected)
+- `POST /recovery-code` - Generate a new recovery code (protected)
+- `POST /reset-password` - Reset password using email + recovery code
+
+Message routes (`/api/messages`):
+
+- `GET /users` - Sidebar users + unseen message counts (protected)
+- `GET /:id` - Conversation with selected user (protected)
+- `POST /send/:id` - Send text/image message to selected user (protected)
+- `PUT /mark/:id` - Mark message as seen (protected)
+- `DELETE /:id` - Delete own message (protected)
+
+Status route:
+
+- `GET /api/status` - Health check endpoint
+
+Realtime socket events:
+
+- Server -> Client: `getOnlineUsers`, `newMessage`, `messageSeen`, `messageDeleted`
 
 ## Deployment
 

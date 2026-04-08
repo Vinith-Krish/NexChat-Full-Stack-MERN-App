@@ -1,4 +1,5 @@
-import { useContext, useState, createContext, useEffect } from "react";
+/* eslint-disable react-refresh/only-export-components */
+import { useContext, useState, createContext, useEffect, useCallback } from "react";
 import { AuthContext } from "./AuthContext";
 import toast from "react-hot-toast";
 
@@ -63,7 +64,7 @@ export const ChatProvider = ({ children }) => {
     }, [socket, selectedUser, axios]);
 
     // function to get all users from sidebar
-    const getAllUsers = async () => {
+    const getAllUsers = useCallback(async () => {
         try {
             setLoadingUsers(true);
             const { data } = await axios.get("/api/messages/users");
@@ -76,10 +77,10 @@ export const ChatProvider = ({ children }) => {
         } finally {
             setLoadingUsers(false);
         }
-    };
+    }, [axios]);
 
     // function to get messages of selected user
-    const getMessages = async (userId) => {
+    const getMessages = useCallback(async (userId) => {
         try {
             setLoadingMessages(true);
             const { data } = await axios.get(`/api/messages/${userId}`);
@@ -94,7 +95,7 @@ export const ChatProvider = ({ children }) => {
         } finally {
             setLoadingMessages(false);
         }
-    };
+    }, [axios]);
 
     const sendMessage = async (message) => {
         try {

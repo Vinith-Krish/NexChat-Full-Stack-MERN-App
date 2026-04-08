@@ -1,4 +1,4 @@
-  // ...existing code...
+/* eslint-disable react-refresh/only-export-components */
 import axios from "axios";
 import { createContext, useEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -78,7 +78,9 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await axios.post("/api/auth/logout", {}, { withCredentials: true });
-    } catch (e) {}
+    } catch (error) {
+      console.warn("Logout request failed:", error.message);
+    }
     setAuthUser(null);
     setOnlineUsers([]);
     toast.success("Logged out successfully");

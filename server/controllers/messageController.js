@@ -61,7 +61,7 @@ export const getUsersForSidebar = async (req, res) => {
     res.json({ success: true, users: filteredUsers, unseenMessages });
   } catch (error) {
     console.log(error.message);
-    res.json({ success: false, message: "Error fetching users" });
+    res.status(500).json({ success: false, message: "Error fetching users" });
   }
 };
 
@@ -72,7 +72,7 @@ export const getMessages = async (req, res) => {
   });
   const parseResult = schema.safeParse(req.params);
   if (!parseResult.success) {
-    return res.json({ success: false, message: "Invalid user id", errors: parseResult.error.errors });
+    return res.status(400).json({ success: false, message: "Invalid user id", errors: parseResult.error.errors });
   }
   try {
     const { id: selectedUserId } = parseResult.data;
@@ -80,7 +80,7 @@ export const getMessages = async (req, res) => {
 
     const allowedToChat = await canUsersChat(myId, selectedUserId);
     if (!allowedToChat) {
-      return res.json({ success: false, message: "Messaging is allowed only with users sharing at least one skill" });
+      return res.status(403).json({ success: false, message: "Messaging is allowed only with users sharing at least one skill" });
     }
 
     const messages = await Message.find({
@@ -116,7 +116,7 @@ export const getMessages = async (req, res) => {
     res.json({ success: true, messages: decryptedMessages });
   } catch (error) {
     console.log(error.message);
-    res.json({ success: false, message: "Error fetching messages" });
+    res.status(500).json({ success: false, message: "Error fetching messages" });
   }
 };
 // api to mark message as seen using message id
@@ -126,7 +126,7 @@ export const markMessageSeen = async (req, res) => {
   });
   const parseResult = schema.safeParse(req.params);
   if (!parseResult.success) {
-    return res.json({ success: false, message: "Invalid message id", errors: parseResult.error.errors });
+    return res.status(400).json({ success: false, message: "Invalid message id", errors: parseResult.error.errors });
   }
   try {
     const { id } = parseResult.data;
@@ -140,7 +140,7 @@ export const markMessageSeen = async (req, res) => {
     res.json({ success: true, message: "Message marked as seen" });
   } catch (error) {
     console.log(error.message);
-    res.json({ success: false, message: "Error marking message as seen" });
+    res.status(500).json({ success: false, message: "Error marking message as seen" });
   }
 };
 
@@ -151,7 +151,7 @@ export const deleteMessage = async (req, res) => {
   });
   const parseResult = schema.safeParse(req.params);
   if (!parseResult.success) {
-    return res.json({ success: false, message: "Invalid message id", errors: parseResult.error.errors });
+    return res.status(400).json({ success: false, message: "Invalid message id", errors: parseResult.error.errors });
   }
 
   try {
@@ -160,11 +160,11 @@ export const deleteMessage = async (req, res) => {
 
     const message = await Message.findById(id);
     if (!message) {
-      return res.json({ success: false, message: "Message not found" });
+      return res.status(404).json({ success: false, message: "Message not found" });
     }
 
     if (String(message.senderId) !== String(userId)) {
-      return res.json({ success: false, message: "Not authorized to delete this message" });
+      return res.status(403).json({ success: false, message: "Not authorized to delete this message" });
     }
 
     await Message.findByIdAndDelete(id);
@@ -181,7 +181,7 @@ export const deleteMessage = async (req, res) => {
     res.json({ success: true, message: "Message deleted" });
   } catch (error) {
     console.log(error.message);
-    res.json({ success: false, message: "Error deleting message" });
+    res.status(500).json({ success: false, message: "Error deleting message" });
   }
 };
 
@@ -198,7 +198,7 @@ export const sendMessage = async (req, res) => {
   const paramResult = paramSchema.safeParse(req.params);
   const bodyResult = bodySchema.safeParse(req.body);
   if (!paramResult.success || !bodyResult.success) {
-    return res.json({ success: false, message: "Invalid input", errors: [paramResult.error?.errors, bodyResult.error?.errors] });
+    return res.status(400).json({ success: false, message: "Invalid input", errors: [paramResult.error?.errors, bodyResult.error?.errors] });
   }
   try {
     const { text, image, replyToMessageId } = bodyResult.data;
@@ -207,11 +207,11 @@ export const sendMessage = async (req, res) => {
 
     const allowedToChat = await canUsersChat(senderId, receiverId);
     if (!allowedToChat) {
-      return res.json({ success: false, message: "You can message only users with at least one matching skill" });
+      return res.status(403).json({ success: false, message: "You can message only users with at least one matching skill" });
     }
 
     if (!text && !image) {
-      return res.json({ success: false, message: "Message text or image is required" });
+      return res.status(400).json({ success: false, message: "Message text or image is required" });
     }
 
     let imageUrl;
@@ -231,7 +231,7 @@ export const sendMessage = async (req, res) => {
       });
 
       if (!repliedMessage) {
-        return res.json({ success: false, message: "Replied message not found" });
+        return res.status(404).json({ success: false, message: "Replied message not found" });
       }
 
       replyToPayload = {
@@ -267,6 +267,6 @@ export const sendMessage = async (req, res) => {
     res.json({ success: true, message: decryptedMessage });
   } catch (error) {
     console.log(error.message);
-    res.json({ success: false, message: "Error sending message" });
+    res.status(500).json({ success: false, message: "Error sending message" });
   }
 };
