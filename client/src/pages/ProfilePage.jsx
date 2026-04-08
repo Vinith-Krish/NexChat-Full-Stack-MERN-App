@@ -18,7 +18,7 @@ const SKILL_OPTIONS = [
 const MAX_SKILLS = 5;
 
 const ProfilePage = () => {
-  const {authUser,updateProfile,isUpdatingProfile,generateRecoveryCode,isGeneratingRecoveryCode,axios} = useContext(AuthContext);
+  const {authUser,updateProfile,updateSkillsProfile,isUpdatingProfile,generateRecoveryCode,isGeneratingRecoveryCode,axios} = useContext(AuthContext);
   const [selectedImage,setSelectedImage]= useState(null)
   const navigate = useNavigate();
   const [name,setName]= useState(authUser.fullName);
@@ -84,17 +84,20 @@ const [tempLookingFor] = useState(authUser?.lookingFor || []);
         yearsOfExperience: Number.isFinite(skill.yearsOfExperience) ? skill.yearsOfExperience : 0,
       }));
 
-        const { data } = await axios.put('/api/auth/skills-profile', {
+      const result = await updateSkillsProfile({
         skills: normalizedSkills,
             lookingFor: tempLookingFor,
         });
-        if (data.success) {
-            // Update local user state
+
+      if (result.success) {
+        const usersRes = await axios.get('/api/messages/users');
+        const matchedCount = usersRes.data?.users?.length || 0;
             toast.success('Skills updated');
+        toast.success(`Found ${matchedCount} matching user${matchedCount === 1 ? '' : 's'}`);
             setIsEditingSkills(false);
         navigate('/');
       } else {
-        toast.error(data.message || 'Unable to update skills');
+        toast.error(result.message || 'Unable to update skills');
         }
     } catch (error) {
       toast.error(error.response?.data?.message || error.message || 'Error updating skills');

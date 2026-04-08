@@ -107,6 +107,23 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateSkillsProfile = async (body) => {
+    try {
+      const { data } = await axios.put("/api/auth/skills-profile", body, { withCredentials: true });
+      if (data.success) {
+        const refreshed = await axios.get("/api/auth/check");
+        setAuthUser(refreshed.data.user);
+        return { success: true, data };
+      }
+      return { success: false, message: data.message };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message,
+      };
+    }
+  };
+
   // connect socket function to handle socket connection and user update
   const connectSocket = (userData) => {
     if (!userData || socket?.connected) return;
@@ -134,6 +151,7 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     updateProfile,
+    updateSkillsProfile,
     generateRecoveryCode,
     isAuthLoading,
     isUpdatingProfile,

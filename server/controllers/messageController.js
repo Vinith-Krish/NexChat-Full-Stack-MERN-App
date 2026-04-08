@@ -12,6 +12,15 @@ const getSkillNames = (userDoc) => {
     .filter(Boolean);
 };
 
+const getOriginalSkillNames = (userDoc) => {
+  if (!userDoc?.skills || !Array.isArray(userDoc.skills)) return [];
+  return userDoc.skills
+    .map((skill) => String(skill?.name || "").trim())
+    .filter(Boolean);
+};
+
+const escapeRegex = (value = "") => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 const hasSkillMatch = (firstUser, secondUser) => {
   const firstSkills = getSkillNames(firstUser);
   const secondSkills = new Set(getSkillNames(secondUser));
@@ -39,15 +48,17 @@ export const getUsersForSidebar = async (req, res) => {
   try {
     const userId = req.user._id;
     const currentUser = await User.findById(userId).select("skills").lean();
-    const currentUserSkills = getSkillNames(currentUser);
+    const currentUserSkills = getOriginalSkillNames(currentUser);
 
     if (currentUserSkills.length === 0) {
       return res.json({ success: true, users: [], unseenMessages: {} });
     }
 
+    const skillMatchers = currentUserSkills.map((skillName) => new RegExp(`^${escapeRegex(skillName)}$`, "i"));
+
     const filteredUsers = await User.find({
       _id: { $ne: userId },
-      "skills.name": { $in: currentUserSkills },
+      "skills.name": { $in: skillMatchers },
     }).select(
       "-password",
     );
