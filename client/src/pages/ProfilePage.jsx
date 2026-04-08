@@ -4,6 +4,20 @@ import assets from '../assets/assets'
 import { AuthContext } from '../../context/AuthContext'
 import toast from 'react-hot-toast';
 import axios from 'axios';
+
+const SKILL_OPTIONS = [
+  'JavaScript', 'Python', 'Go', 'Rust', 'Java', 'C++', 'TypeScript', 'PHP',
+  'React', 'Vue', 'Angular', 'Svelte', 'HTML/CSS',
+  'Node.js', 'Express', 'Django', 'FastAPI', 'Spring',
+  'React Native', 'Flutter', 'Swift', 'Kotlin',
+  'Docker', 'Kubernetes', 'AWS', 'GCP', 'Azure', 'CI/CD',
+  'UI/UX Design', 'Figma', 'Adobe XD', 'Graphic Design',
+  'MongoDB', 'PostgreSQL', 'MySQL', 'Firebase',
+  'Machine Learning', 'Data Science', 'Marketing', 'Content Writing'
+];
+
+const MAX_SKILLS = 5;
+
 const ProfilePage = () => {
   const {authUser,updateProfile,isUpdatingProfile,generateRecoveryCode,isGeneratingRecoveryCode} = useContext(AuthContext);
   const [selectedImage,setSelectedImage]= useState(null)
@@ -16,6 +30,10 @@ const ProfilePage = () => {
 const [isEditingSkills, setIsEditingSkills] = useState(false);
 const [tempSkills, setTempSkills] = useState(authUser?.skills || []);
 const [tempLookingFor] = useState(authUser?.lookingFor || []);
+
+  useEffect(() => {
+    setTempSkills(authUser?.skills || []);
+  }, [authUser]);
 
   useEffect(()=>{
     setName(authUser.fullName);
@@ -74,7 +92,22 @@ const [tempLookingFor] = useState(authUser?.lookingFor || []);
         toast.error('Error updating skills'+error.message);
     }
 };
-  const SKILL_OPTIONS = (authUser?.skills || []).map((skill) => skill.name);
+
+  const handleToggleSkill = (skillName) => {
+    const alreadySelected = tempSkills.find((s) => s.name === skillName);
+
+    if (alreadySelected) {
+      setTempSkills(tempSkills.filter((s) => s.name !== skillName));
+      return;
+    }
+
+    if (tempSkills.length >= MAX_SKILLS) {
+      toast.error(`You can select up to ${MAX_SKILLS} skills`);
+      return;
+    }
+
+    setTempSkills([...tempSkills, { name: skillName }]);
+  };
 
   return (
     <div className='min-h-screen bg-cover bg-no-repeat flex items-center justify-center p-6'>
@@ -134,26 +167,23 @@ const [tempLookingFor] = useState(authUser?.lookingFor || []);
           </div>
 
           {isEditingSkills ? (
-            <div className='flex flex-wrap gap-2 mt-3'>
+            <div className='mt-3'>
+              <p className='text-xs text-gray-300 mb-2'>Selected: {tempSkills.length}/{MAX_SKILLS}</p>
+              <div className='flex flex-wrap gap-2'>
               {SKILL_OPTIONS.map((skill) => (
                 <button
                   key={skill}
-                  onClick={() => {
-                    if (tempSkills.find((s) => s.name === skill)) {
-                      setTempSkills(tempSkills.filter((s) => s.name !== skill));
-                    } else {
-                      setTempSkills([...tempSkills, { name: skill }]);
-                    }
-                  }}
+                  onClick={() => handleToggleSkill(skill)}
                   className={`px-3 py-1 rounded text-xs ${
                     tempSkills.find((s) => s.name === skill)
                       ? 'bg-violet-600 text-white'
-                      : 'bg-gray-700 text-gray-200'
+                      : 'bg-gray-700 text-gray-200 hover:bg-gray-600'
                   }`}
                 >
                   {skill}
                 </button>
               ))}
+              </div>
             </div>
           ) : (
             <div className='flex flex-wrap gap-2 mt-3'>
