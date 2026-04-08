@@ -154,16 +154,15 @@ const [tempLookingFor] = useState(authUser?.lookingFor || []);
         <div className='p-4 bg-white/10 rounded-lg border border-gray-700'>
           <div className='flex items-center justify-between'>
             <h3 className='text-white font-semibold'>Skills</h3>
-            <div className='flex items-center gap-2'>
-              {isEditingSkills && (
-                <button onClick={handleUpdateSkills} className='text-xs px-3 py-1 rounded bg-violet-600 text-white'>
-                  Update
-                </button>
-              )}
-              <button onClick={() => setIsEditingSkills(!isEditingSkills)} className='text-violet-400 text-sm'>
-                {isEditingSkills ? 'Done' : 'Edit'}
+            {isEditingSkills ? (
+              <button onClick={handleUpdateSkills} className='text-xs px-3 py-1 rounded bg-violet-600 text-white'>
+                Update
               </button>
-            </div>
+            ) : (
+              <button onClick={() => setIsEditingSkills(true)} className='text-violet-400 text-sm'>
+                Edit
+              </button>
+            )}
           </div>
 
           {isEditingSkills ? (
