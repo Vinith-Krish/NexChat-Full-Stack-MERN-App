@@ -85,6 +85,9 @@ export const ChatProvider = ({ children }) => {
             const { data } = await axios.get(`/api/messages/${userId}`);
             if (data.success) {
                 setMessages(data.messages);
+            } else {
+                setMessages([]);
+                toast.error(data.message || "Unable to load messages");
             }
         } catch (error) {
             toast.error(error.message);

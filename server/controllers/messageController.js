@@ -4,11 +4,51 @@ import User from "../models/User.js";
 import { io, userSocketMap } from "../server.js";
 import { z } from "zod";
 import { encryptMessage, decryptMessage } from "../lib/encryption.js";
+
+const getSkillNames = (userDoc) => {
+  if (!userDoc?.skills || !Array.isArray(userDoc.skills)) return [];
+  return userDoc.skills
+    .map((skill) => String(skill?.name || "").trim().toLowerCase())
+    .filter(Boolean);
+};
+
+const hasSkillMatch = (firstUser, secondUser) => {
+  const firstSkills = getSkillNames(firstUser);
+  const secondSkills = new Set(getSkillNames(secondUser));
+
+  if (firstSkills.length === 0 || secondSkills.size === 0) {
+    return false;
+  }
+
+  return firstSkills.some((skill) => secondSkills.has(skill));
+};
+
+const canUsersChat = async (firstUserId, secondUserId) => {
+  const users = await User.find({ _id: { $in: [firstUserId, secondUserId] } })
+    .select("skills")
+    .lean();
+
+  if (users.length !== 2) {
+    return false;
+  }
+
+  return hasSkillMatch(users[0], users[1]);
+};
 // get all users except the logged in user
 export const getUsersForSidebar = async (req, res) => {
   try {
     const userId = req.user._id;
-    const filteredUsers = await User.find({ _id: { $ne: userId } }).select(
+    const currentUser = await User.findById(userId).select("skills").lean();
+    const currentUserSkills = getSkillNames(currentUser);
+
+    if (currentUserSkills.length === 0) {
+      return res.json({ success: true, users: [], unseenMessages: {} });
+    }
+
+    const filteredUsers = await User.find({
+      _id: { $ne: userId },
+      "skills.name": { $in: currentUserSkills },
+    }).select(
       "-password",
     );
     // count number of unseen messages
@@ -43,6 +83,12 @@ export const getMessages = async (req, res) => {
   try {
     const { id: selectedUserId } = parseResult.data;
     const myId = req.user._id;
+
+    const allowedToChat = await canUsersChat(myId, selectedUserId);
+    if (!allowedToChat) {
+      return res.json({ success: false, message: "Messaging is allowed only with users sharing at least one skill" });
+    }
+
     const messages = await Message.find({
       $or: [
         { senderId: myId, receiverId: selectedUserId },
@@ -164,6 +210,11 @@ export const sendMessage = async (req, res) => {
     const { text, image, replyToMessageId } = bodyResult.data;
     const { id: receiverId } = paramResult.data;
     const senderId = req.user._id;
+
+    const allowedToChat = await canUsersChat(senderId, receiverId);
+    if (!allowedToChat) {
+      return res.json({ success: false, message: "You can message only users with at least one matching skill" });
+    }
 
     if (!text && !image) {
       return res.json({ success: false, message: "Message text or image is required" });
