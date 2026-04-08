@@ -87,6 +87,7 @@ const [tempLookingFor] = useState(authUser?.lookingFor || []);
             // Update local user state
             toast.success('Skills updated');
             setIsEditingSkills(false);
+        navigate('/');
         }
     } catch (error) {
         toast.error('Error updating skills'+error.message);
