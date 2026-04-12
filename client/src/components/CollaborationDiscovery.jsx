@@ -8,6 +8,18 @@ const SKILL_OPTIONS = [
     'Docker', 'AWS', 'MongoDB', 'Machine Learning'
 ];
 
+const EXPERIENCE_LEVELS = ['Beginner', 'Intermediate', 'Expert'];
+
+const LOOKING_FOR_OPTIONS = [
+    'Find collaborators',
+    'Mentor others',
+    'Be mentored',
+    'Learn new skill',
+    'Build startup',
+    'Open source',
+    'Freelance'
+];
+
 const CollaborationDiscovery = () => {
     const { axios } = useContext(AuthContext);
     const [discoveredUsers, setDiscoveredUsers] = useState([]);
@@ -72,6 +84,42 @@ const CollaborationDiscovery = () => {
                         </button>
                     ))}
                 </div>
+
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3'>
+                    <select
+                        value={filters.experienceLevel}
+                        onChange={(e) => setFilters(prev => ({ ...prev, experienceLevel: e.target.value }))}
+                        className='bg-gray-800 text-white rounded px-2 py-2 text-sm'
+                    >
+                        <option value=''>Any experience level</option>
+                        {EXPERIENCE_LEVELS.map(level => (
+                            <option key={level} value={level}>{level}</option>
+                        ))}
+                    </select>
+
+                    <select
+                        value={filters.lookingFor}
+                        onChange={(e) => setFilters(prev => ({ ...prev, lookingFor: e.target.value }))}
+                        className='bg-gray-800 text-white rounded px-2 py-2 text-sm'
+                    >
+                        <option value=''>Any goal</option>
+                        {LOOKING_FOR_OPTIONS.map(option => (
+                            <option key={option} value={option}>{option}</option>
+                        ))}
+                    </select>
+                </div>
+
+                <button
+                    onClick={() => {
+                        setFilters({ skills: [], experienceLevel: '', lookingFor: '' });
+                        setDiscoveredUsers([]);
+                    }}
+                    className='w-full py-2 mb-2 bg-gray-700 text-white rounded'
+                    type='button'
+                >
+                    Clear Filters
+                </button>
+
                 <button
                     onClick={searchUsers}
                     disabled={loading}

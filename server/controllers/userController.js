@@ -274,8 +274,30 @@ export const getUsersBySkill = async (req, res) => {
         limit: z.number().default(20),
         skip: z.number().default(0),
     });
+
+    const normalizeSkills = (input) => {
+        if (!input) return undefined;
+        if (Array.isArray(input)) {
+            return input
+                .flatMap((item) => String(item).split(','))
+                .map((item) => item.trim())
+                .filter(Boolean);
+        }
+        if (typeof input === 'string') {
+            return input.split(',').map((item) => item.trim()).filter(Boolean);
+        }
+        return undefined;
+    };
+
+    const normalizedQuery = {
+        skills: normalizeSkills(req.query.skills),
+        experienceLevel: typeof req.query.experienceLevel === 'string' ? req.query.experienceLevel : undefined,
+        lookingFor: typeof req.query.lookingFor === 'string' ? req.query.lookingFor : undefined,
+        limit: req.query.limit !== undefined ? Number(req.query.limit) : undefined,
+        skip: req.query.skip !== undefined ? Number(req.query.skip) : undefined,
+    };
     
-    const parseResult = schema.safeParse(req.query);
+    const parseResult = schema.safeParse(normalizedQuery);
     if (!parseResult.success) {
         return res.status(400).json({ success: false, message: "Invalid input", errors: parseResult.error.errors });
     }

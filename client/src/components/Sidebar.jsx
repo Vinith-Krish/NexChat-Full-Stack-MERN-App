@@ -8,7 +8,7 @@ import { useState } from 'react'
 import { useEffect } from 'react'
 // import { get } from 'mongoose'
 
-const Sidebar = () => {
+const Sidebar = ({ discoveryOpen, onToggleDiscovery }) => {
   const {getAllUsers, users, selectedUser, setSelectedUser,
     unseenMessages, setUnseenMessages, loadingUsers} = useContext(ChatContext);
   const { logout, onlineUsers, authUser } = useContext(AuthContext);
@@ -40,6 +40,13 @@ const Sidebar = () => {
           <img src={assets.search_icon} alt="Search" className='w-3' />
           <input onChange={(e)=>setInput(e.target.value)}  type="text" className="bg-transparent border-none outline-none text-white text-xs placeholder-[#c8c8c8] flex-1" placeholder='Search User...' />
         </div>
+        <button
+          type='button'
+          onClick={onToggleDiscovery}
+          className={`w-full mt-3 py-2 rounded-md text-sm ${discoveryOpen ? 'bg-violet-600 text-white' : 'bg-[#282142] text-gray-200'}`}
+        >
+          {discoveryOpen ? 'Hide Discovery' : 'Discover Collaborators'}
+        </button>
       </div>
       <div className="flex flex-col">
         {loadingUsers && <div className="px-4 py-6 text-sm text-gray-300">Loading conversations...</div>}
