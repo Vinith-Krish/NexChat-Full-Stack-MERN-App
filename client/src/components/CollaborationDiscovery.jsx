@@ -209,7 +209,10 @@ const CollaborationDiscovery = () => {
                                 </span>
                             ))}
                         </div>
-                        <p className='text-[11px] text-violet-200'>Click to open chat</p>
+                        <div className='inline-flex items-center gap-2 rounded-full border border-violet-300/40 bg-linear-to-r from-violet-500/30 to-fuchsia-500/20 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-violet-100 shadow-[0_0_18px_rgba(168,85,247,0.25)]'>
+                            <span>Start Chat</span>
+                            <span aria-hidden='true'>-></span>
+                        </div>
                     </button>
                 ))}
             </div>
