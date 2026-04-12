@@ -1,5 +1,6 @@
 import avatar_icon from './avatar_icon.png'
 import gallery_icon from './gallery_icon.svg'
+import attachment_icon from './attachment_icon.svg'
 import help_icon from './help_icon.png'
 import logo_icon from './logo_icon.svg'
 import logo_big from './logo_big.svg'
@@ -25,6 +26,7 @@ import img2 from './img2.jpg'
 const assets = {
     avatar_icon,
     gallery_icon,
+    attachment_icon,
     help_icon,
     logo_big,
     logo_icon,

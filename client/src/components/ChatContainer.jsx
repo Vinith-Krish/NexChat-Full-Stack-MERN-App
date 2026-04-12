@@ -29,6 +29,7 @@ const ChatContainer = () => {
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'text/plain',
   ]
+  const allowedImageMimeTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp']
   const maxAttachmentSizeBytes = 500 * 1024 * 1024
 
   const getReplySenderLabel = (message) => {
@@ -53,33 +54,17 @@ const ChatContainer = () => {
     setOpenMenuFor(null)
   }
 
-  const handleSendImage = async (e) => {
-    if (sendingMessage) return
-    const file = e.target.files[0]
-
-    if (!file || !file.type.startsWith('image/')) {
-      toast.error('Please select a valid image file')
-      return
-    }
-
-    const reader = new FileReader()
-    reader.onloadend = async () => {
-      await sendMessage({ image: reader.result, replyToMessageId: replyingTo?._id })
-      setReplyingTo(null)
-      setOpenMenuFor(null)
-      e.target.value = ''
-    }
-    reader.readAsDataURL(file)
-  }
-
   const handleSendAttachment = async (e) => {
     if (sendingMessage) return
     const file = e.target.files[0]
 
     if (!file) return
 
-    if (!allowedAttachmentMimeTypes.includes(file.type)) {
-      toast.error('Only PDF, DOC, DOCX, and TXT files are allowed')
+    const isImage = allowedImageMimeTypes.includes(file.type)
+    const isDocument = allowedAttachmentMimeTypes.includes(file.type)
+
+    if (!isImage && !isDocument) {
+      toast.error('Please select an image, PDF, DOC, DOCX, or TXT file')
       e.target.value = ''
       return
     }
@@ -92,15 +77,19 @@ const ChatContainer = () => {
 
     const reader = new FileReader()
     reader.onloadend = async () => {
-      await sendMessage({
-        attachment: {
-          data: reader.result,
-          fileName: file.name,
-          mimeType: file.type,
-          size: file.size,
-        },
-        replyToMessageId: replyingTo?._id,
-      })
+      if (isImage) {
+        await sendMessage({ image: reader.result, replyToMessageId: replyingTo?._id })
+      } else {
+        await sendMessage({
+          attachment: {
+            data: reader.result,
+            fileName: file.name,
+            mimeType: file.type,
+            size: file.size,
+          },
+          replyToMessageId: replyingTo?._id,
+        })
+      }
       setReplyingTo(null)
       setOpenMenuFor(null)
       e.target.value = ''
@@ -329,19 +318,15 @@ const ChatContainer = () => {
             className='flex-1 text-sm p-3 border-none rounded-lg outline-none text-white placeholder-gray-400'
             disabled={sendingMessage}
           />
-          <input onChange={handleSendImage} type="file" id='image' accept='image/png,image/jpeg' hidden />
-          <label htmlFor="image">
-            <img src={assets.gallery_icon} alt="" className="w-5 mr-2 cursor-pointer" />
-          </label>
           <input
             onChange={handleSendAttachment}
             type="file"
-            id='attachment'
-            accept='.pdf,.doc,.docx,.txt,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain'
+            id='file-upload'
+            accept='image/png,image/jpeg,image/jpg,image/webp,.pdf,.doc,.docx,.txt,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain'
             hidden
           />
-          <label htmlFor="attachment" className="text-xs text-gray-300 cursor-pointer hover:text-white mr-2">
-            DOC
+          <label htmlFor="file-upload" title="Upload image or document" className="mr-2 cursor-pointer">
+            <img src={assets.attachment_icon} alt="Attach file" className="w-5" />
           </label>
           </div>
         </div>
