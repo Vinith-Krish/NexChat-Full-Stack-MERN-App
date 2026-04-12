@@ -5,6 +5,23 @@ import { io, userSocketMap } from "../server.js";
 import { z } from "zod";
 import { encryptMessage, decryptMessage } from "../lib/encryption.js";
 
+const ALLOWED_ATTACHMENT_TYPES = new Set([
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "text/plain",
+]);
+const MAX_ATTACHMENT_SIZE_BYTES = 500 * 1024 * 1024;
+
+const getDataUrlSizeInBytes = (dataUrl) => {
+  if (!dataUrl || typeof dataUrl !== "string") return 0;
+  const parts = dataUrl.split(",");
+  if (parts.length < 2) return 0;
+  const base64Data = parts[1];
+  const padding = (base64Data.match(/=+$/) || [""])[0].length;
+  return Math.floor((base64Data.length * 3) / 4) - padding;
+};
+
 const getSkillNames = (userDoc) => {
   if (!userDoc?.skills || !Array.isArray(userDoc.skills)) return [];
   return userDoc.skills
@@ -193,6 +210,14 @@ export const sendMessage = async (req, res) => {
   const bodySchema = z.object({
     text: z.string().min(1).optional(),
     image: z.string().optional(),
+    attachment: z
+      .object({
+        data: z.string().min(1),
+        fileName: z.string().min(1),
+        mimeType: z.string().min(1),
+        size: z.number().int().nonnegative().optional(),
+      })
+      .optional(),
     replyToMessageId: z.string().min(1).optional(),
   });
   const paramResult = paramSchema.safeParse(req.params);
@@ -201,7 +226,7 @@ export const sendMessage = async (req, res) => {
     return res.status(400).json({ success: false, message: "Invalid input", errors: [paramResult.error?.errors, bodyResult.error?.errors] });
   }
   try {
-    const { text, image, replyToMessageId } = bodyResult.data;
+    const { text, image, attachment, replyToMessageId } = bodyResult.data;
     const { id: receiverId } = paramResult.data;
     const senderId = req.user._id;
 
@@ -210,14 +235,42 @@ export const sendMessage = async (req, res) => {
       return res.status(403).json({ success: false, message: "You can message only users with at least one matching skill" });
     }
 
-    if (!text && !image) {
-      return res.status(400).json({ success: false, message: "Message text or image is required" });
+    if (!text && !image && !attachment) {
+      return res.status(400).json({ success: false, message: "Message text, image, or attachment is required" });
     }
 
     let imageUrl;
     if (image) {
       const uploadResponse = await cloudinary.uploader.upload(image);
       imageUrl = uploadResponse.secure_url;
+    }
+
+    let attachmentPayload;
+    if (attachment) {
+      if (!ALLOWED_ATTACHMENT_TYPES.has(attachment.mimeType)) {
+        return res.status(400).json({ success: false, message: "Only PDF, DOC, DOCX, and TXT files are allowed" });
+      }
+
+      const computedAttachmentSize = getDataUrlSizeInBytes(attachment.data);
+      const declaredAttachmentSize = attachment.size ?? computedAttachmentSize;
+
+      if (declaredAttachmentSize > MAX_ATTACHMENT_SIZE_BYTES || computedAttachmentSize > MAX_ATTACHMENT_SIZE_BYTES) {
+        return res.status(400).json({ success: false, message: "File size must be 500MB or less" });
+      }
+
+      const uploadResponse = await cloudinary.uploader.upload(attachment.data, {
+        resource_type: "raw",
+        folder: "chat_attachments",
+        use_filename: true,
+        unique_filename: true,
+      });
+
+      attachmentPayload = {
+        url: uploadResponse.secure_url,
+        fileName: attachment.fileName,
+        mimeType: attachment.mimeType,
+        size: declaredAttachmentSize,
+      };
     }
 
     let replyToPayload;
@@ -239,6 +292,7 @@ export const sendMessage = async (req, res) => {
         senderId: repliedMessage.senderId,
         text: decryptMessage(repliedMessage.text),
         image: repliedMessage.image,
+        attachment: repliedMessage.attachment,
       };
     }
     
@@ -250,6 +304,7 @@ export const sendMessage = async (req, res) => {
       receiverId,
       text: encryptedText,
       image: imageUrl,
+      attachment: attachmentPayload,
       replyTo: replyToPayload,
     });
     

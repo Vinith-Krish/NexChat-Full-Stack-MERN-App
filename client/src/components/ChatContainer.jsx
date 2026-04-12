@@ -23,6 +23,14 @@ const ChatContainer = () => {
   const [replyingTo, setReplyingTo] = useState(null)
   const [openMenuFor, setOpenMenuFor] = useState(null)
 
+  const allowedAttachmentMimeTypes = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'text/plain',
+  ]
+  const maxAttachmentSizeBytes = 500 * 1024 * 1024
+
   const getReplySenderLabel = (message) => {
     if (!message) return ''
     return String(message.senderId) === String(authUser?._id) ? 'You' : selectedUser?.fullName || 'User'
@@ -64,6 +72,42 @@ const ChatContainer = () => {
     reader.readAsDataURL(file)
   }
 
+  const handleSendAttachment = async (e) => {
+    if (sendingMessage) return
+    const file = e.target.files[0]
+
+    if (!file) return
+
+    if (!allowedAttachmentMimeTypes.includes(file.type)) {
+      toast.error('Only PDF, DOC, DOCX, and TXT files are allowed')
+      e.target.value = ''
+      return
+    }
+
+    if (file.size > maxAttachmentSizeBytes) {
+      toast.error('File size must be 500MB or less')
+      e.target.value = ''
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onloadend = async () => {
+      await sendMessage({
+        attachment: {
+          data: reader.result,
+          fileName: file.name,
+          mimeType: file.type,
+          size: file.size,
+        },
+        replyToMessageId: replyingTo?._id,
+      })
+      setReplyingTo(null)
+      setOpenMenuFor(null)
+      e.target.value = ''
+    }
+    reader.readAsDataURL(file)
+  }
+
   useEffect(() => {
     if (selectedUser) {
       getMessages(selectedUser._id)
@@ -94,7 +138,7 @@ const ChatContainer = () => {
 
   const handleCopyMessage = async (msg) => {
     try {
-      const valueToCopy = msg.text || msg.image
+      const valueToCopy = msg.text || msg.image || msg.attachment?.url
       if (!valueToCopy) {
         toast.error('Nothing to copy')
         return
@@ -113,6 +157,8 @@ const ChatContainer = () => {
       toast.success('Added to composer')
     } else if (msg.image) {
       toast('Forwarding images is not available yet')
+    } else if (msg.attachment) {
+      toast('Forwarding files is not available yet')
     }
     setOpenMenuFor(null)
   }
@@ -203,6 +249,8 @@ const ChatContainer = () => {
                       <p className="font-semibold text-gray-100">{getReplySenderLabel(msg.replyTo)}</p>
                       {msg.replyTo.image ? (
                         <p className="text-gray-300">Photo</p>
+                      ) : msg.replyTo.attachment ? (
+                        <p className="text-gray-300">Document: {msg.replyTo.attachment.fileName || 'Attachment'}</p>
                       ) : (
                         <p className="truncate text-gray-300">{msg.replyTo.text || 'Message'}</p>
                       )}
@@ -220,6 +268,17 @@ const ChatContainer = () => {
                         alt="Sent image"
                         className="max-w-57.5"
                       />
+                    </button>
+                  ) : msg.attachment?.url ? (
+                    <button
+                      onClick={() => window.open(msg.attachment.url, '_blank', 'noopener,noreferrer')}
+                      className="border border-gray-700 rounded-lg px-3 py-2 bg-black/20 text-left"
+                      title="Open attachment"
+                    >
+                      <p className="text-xs text-gray-300">Attachment</p>
+                      <p className="text-sm text-white truncate max-w-50">
+                        {msg.attachment.fileName || 'Document'}
+                      </p>
                     </button>
                   ) : (
                     <p
@@ -249,6 +308,8 @@ const ChatContainer = () => {
                 <p className="font-medium">Replying to {getReplySenderLabel(replyingTo)}</p>
                 {replyingTo.image ? (
                   <p className="text-gray-300">Photo</p>
+                ) : replyingTo.attachment ? (
+                  <p className="truncate max-w-60 text-gray-300">Document: {replyingTo.attachment.fileName || 'Attachment'}</p>
                 ) : (
                   <p className="truncate max-w-60 text-gray-300">{replyingTo.text || 'Message'}</p>
                 )}
@@ -271,6 +332,16 @@ const ChatContainer = () => {
           <input onChange={handleSendImage} type="file" id='image' accept='image/png,image/jpeg' hidden />
           <label htmlFor="image">
             <img src={assets.gallery_icon} alt="" className="w-5 mr-2 cursor-pointer" />
+          </label>
+          <input
+            onChange={handleSendAttachment}
+            type="file"
+            id='attachment'
+            accept='.pdf,.doc,.docx,.txt,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain'
+            hidden
+          />
+          <label htmlFor="attachment" className="text-xs text-gray-300 cursor-pointer hover:text-white mr-2">
+            DOC
           </label>
           </div>
         </div>
