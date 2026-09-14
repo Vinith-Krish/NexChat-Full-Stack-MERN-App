@@ -138,6 +138,9 @@ export const AuthProvider = ({ children }) => {
     newSocket.on("getOnlineUsers", (userIds) => {
       setOnlineUsers(userIds.map(String));
     });
+    newSocket.on("connect_error", (error) => {
+      console.error("Socket connection failed:", error.message);
+    });
     newSocket.connect();
     setSocket(newSocket);
   };
