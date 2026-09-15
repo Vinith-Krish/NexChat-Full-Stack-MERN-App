@@ -5,7 +5,11 @@ import cloudinary from "../lib/cloudinary.js";
 import { generateToken } from "../lib/utils.js";
 import User from "../models/User.js";
 
-const RECOVERY_CODE_PEPPER = process.env.RECOVERY_CODE_PEPPER || "recovery-code-dev-pepper-change-in-production";
+const RECOVERY_CODE_PEPPER = process.env.RECOVERY_CODE_PEPPER;
+
+if (!RECOVERY_CODE_PEPPER) {
+    throw new Error("RECOVERY_CODE_PEPPER is not defined in environment variables");
+}
 
 function hashRecoveryCode(code) {
     return crypto.createHash("sha256").update(String(code).trim().toUpperCase() + RECOVERY_CODE_PEPPER).digest("hex");
