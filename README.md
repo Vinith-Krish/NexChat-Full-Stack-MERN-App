@@ -84,7 +84,20 @@ CLOUDINARY_API_SECRET=
 CORS_ORIGINS=*
 RECOVERY_CODE_PEPPER=
 ENCRYPTION_KEY=generate-a-64-character-hex-key
+
+# Optional API rate-limit settings
+RATE_LIMIT_AUTH_WINDOW_MS=900000
+RATE_LIMIT_AUTH_MAX_PER_IP=20
+RATE_LIMIT_AUTH_MAX_PER_ACCOUNT=8
+RATE_LIMIT_AUTH_BACKOFF_BASE_MS=1000
+RATE_LIMIT_AUTH_BACKOFF_MAX_MS=60000
+RATE_LIMIT_PUBLIC_WINDOW_MS=60000
+RATE_LIMIT_PUBLIC_MAX=120
+RATE_LIMIT_AUTHENTICATED_WINDOW_MS=60000
+RATE_LIMIT_AUTHENTICATED_MAX=300
 ```
+
+Authentication routes use both client-IP and account identifiers, and apply increasing `Retry-After` delays when a threshold is exceeded. The counters are in-memory and reset when the server restarts; deployments with multiple backend instances should place a shared rate-limit store or gateway in front of the API.
 
 ### Frontend
 

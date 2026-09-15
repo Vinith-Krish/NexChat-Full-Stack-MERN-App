@@ -79,7 +79,7 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await axios.post("/api/auth/logout", {}, { withCredentials: true });
-    } catch (error) {
+    } catch {
       console.warn("Logout request failed");
     }
     setAuthUser(null);
@@ -139,7 +139,7 @@ export const AuthProvider = ({ children }) => {
     newSocket.on("getOnlineUsers", (userIds) => {
       setOnlineUsers(userIds.map(String));
     });
-    newSocket.on("connect_error", (error) => {
+    newSocket.on("connect_error", () => {
       console.error("Socket connection failed");
     });
     newSocket.connect();

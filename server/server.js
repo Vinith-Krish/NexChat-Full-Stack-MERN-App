@@ -8,6 +8,7 @@ import userRouter from "./routes/userRoutes.js";
 import messageRouter from "./routes/messageRoutes.js";
 import { Server } from "socket.io";
 import { logServerError } from "./lib/logger.js";
+import { publicRateLimit } from "./lib/rateLimit.js";
 
 const normalizeOrigin = (origin = "") => origin.trim().replace(/\/+$/, "");
 
@@ -90,7 +91,7 @@ app.use(cors({
 }));
 
 // Routes Setup
-app.use("/api/status", (req, res) => res.send("Server is running fine"));
+app.use("/api/status", publicRateLimit, (req, res) => res.send("Server is running fine"));
 app.use("/api/auth", userRouter);
 app.use("/api/messages", messageRouter);
 

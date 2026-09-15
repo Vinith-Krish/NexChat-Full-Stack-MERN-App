@@ -5,6 +5,7 @@ import cloudinary from "../lib/cloudinary.js";
 import { generateToken } from "../lib/utils.js";
 import User from "../models/User.js";
 import { logServerError } from "../lib/logger.js";
+import { validateImageUpload } from "../lib/uploadValidation.js";
 
 const RECOVERY_CODE_PEPPER = process.env.RECOVERY_CODE_PEPPER;
 
@@ -215,7 +216,11 @@ export const updateProfile = async (req, res) => {
         if (!profilePic) {
             updatedUser = await User.findByIdAndUpdate(userId, { fullName, bio }, { new: true }).select("-password -recoveryCodeHash -recoveryCodeIssuedAt -tokenVersion");
         } else {
-            const upload = await cloudinary.uploader.upload(profilePic);
+            const imageValidation = validateImageUpload(profilePic);
+            if (!imageValidation.valid) {
+                return res.status(400).json({ success: false, message: imageValidation.message });
+            }
+            const upload = await cloudinary.uploader.upload(profilePic, { resource_type: "image" });
             updatedUser = await User.findByIdAndUpdate(userId, { fullName, bio, profilePic: upload.secure_url }, { new: true }).select("-password -recoveryCodeHash -recoveryCodeIssuedAt -tokenVersion");
         }
         res.json({ success: true, userData: updatedUser, message: "Profile updated successfully" });

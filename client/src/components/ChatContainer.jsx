@@ -30,7 +30,7 @@ const ChatContainer = () => {
     'text/plain',
   ]
   const allowedImageMimeTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp']
-  const maxAttachmentSizeBytes = 500 * 1024 * 1024
+  const maxAttachmentSizeBytes = 3 * 1024 * 1024
 
   const getReplySenderLabel = (message) => {
     if (!message) return ''
@@ -70,7 +70,7 @@ const ChatContainer = () => {
     }
 
     if (file.size > maxAttachmentSizeBytes) {
-      toast.error('File size must be 500MB or less')
+      toast.error('File size must be 3MB or less')
       e.target.value = ''
       return
     }

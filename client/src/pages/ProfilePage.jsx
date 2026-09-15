@@ -30,6 +30,7 @@ const ProfilePage = () => {
 const [isEditingSkills, setIsEditingSkills] = useState(false);
 const [tempSkills, setTempSkills] = useState(authUser?.skills || []);
 const [tempLookingFor] = useState(authUser?.lookingFor || []);
+  const maxProfileImageSizeBytes = 3 * 1024 * 1024;
 
   useEffect(() => {
     setTempSkills(authUser?.skills || []);
@@ -55,6 +56,17 @@ const [tempLookingFor] = useState(authUser?.lookingFor || []);
 
   const handleSubmit = async(e)=>{
     e.preventDefault();
+    if (selectedImage) {
+      const allowedImageTypes = ['image/png', 'image/jpeg', 'image/webp'];
+      if (!allowedImageTypes.includes(selectedImage.type)) {
+        toast.error('Please select a PNG, JPG, or WebP image');
+        return;
+      }
+      if (selectedImage.size > maxProfileImageSizeBytes) {
+        toast.error('Profile image must be 3MB or less');
+        return;
+      }
+    }
     if(!selectedImage){
       const success = await updateProfile({fullName:name,bio});
       if(success) navigate("/")
@@ -135,7 +147,7 @@ const [tempLookingFor] = useState(authUser?.lookingFor || []);
           <form onSubmit={handleSubmit} className="flex flex-col gap-5 p-10 flex-1">
             <h3 className="text-lg">Profile Details</h3>
             <label htmlFor="avatar" className="flex items-center gap-3 cursor-pointer">
-              <input onChange={(e) => setSelectedImage(e.target.files[0])} type="file" id="avatar" accept=".png,.jpg,.jpeg" hidden />
+              <input onChange={(e) => setSelectedImage(e.target.files[0])} type="file" id="avatar" accept="image/png,image/jpeg,image/webp" hidden />
               <img src={previewUrl} alt="Avatar" className="w-12 h-12 rounded-full object-cover" />
               upload profile pic
             </label>

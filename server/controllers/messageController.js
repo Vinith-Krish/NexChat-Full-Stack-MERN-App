@@ -5,23 +5,7 @@ import { io, userSocketMap } from "../server.js";
 import { z } from "zod";
 import { encryptMessage, decryptMessage } from "../lib/encryption.js";
 import { logServerError } from "../lib/logger.js";
-
-const ALLOWED_ATTACHMENT_TYPES = new Set([
-  "application/pdf",
-  "application/msword",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "text/plain",
-]);
-const MAX_ATTACHMENT_SIZE_BYTES = 500 * 1024 * 1024;
-
-const getDataUrlSizeInBytes = (dataUrl) => {
-  if (!dataUrl || typeof dataUrl !== "string") return 0;
-  const parts = dataUrl.split(",");
-  if (parts.length < 2) return 0;
-  const base64Data = parts[1];
-  const padding = (base64Data.match(/=+$/) || [""])[0].length;
-  return Math.floor((base64Data.length * 3) / 4) - padding;
-};
+import { ATTACHMENT_MIME_TYPES, validateImageUpload, validateUpload } from "../lib/uploadValidation.js";
 
 const getSkillNames = (userDoc) => {
   if (!userDoc?.skills || !Array.isArray(userDoc.skills)) return [];
@@ -242,35 +226,43 @@ export const sendMessage = async (req, res) => {
 
     let imageUrl;
     if (image) {
-      const uploadResponse = await cloudinary.uploader.upload(image);
+      const imageValidation = validateImageUpload(image);
+      if (!imageValidation.valid) {
+        return res.status(400).json({ success: false, message: imageValidation.message });
+      }
+      const uploadResponse = await cloudinary.uploader.upload(image, { resource_type: "image" });
       imageUrl = uploadResponse.secure_url;
     }
 
     let attachmentPayload;
     if (attachment) {
-      if (!ALLOWED_ATTACHMENT_TYPES.has(attachment.mimeType)) {
-        return res.status(400).json({ success: false, message: "Only PDF, DOC, DOCX, and TXT files are allowed" });
-      }
-
-      const computedAttachmentSize = getDataUrlSizeInBytes(attachment.data);
-      const declaredAttachmentSize = attachment.size ?? computedAttachmentSize;
-
-      if (declaredAttachmentSize > MAX_ATTACHMENT_SIZE_BYTES || computedAttachmentSize > MAX_ATTACHMENT_SIZE_BYTES) {
-        return res.status(400).json({ success: false, message: "File size must be 500MB or less" });
+      const attachmentValidation = validateUpload({
+        data: attachment.data,
+        mimeType: attachment.mimeType,
+        fileName: attachment.fileName,
+        allowedMimeTypes: ATTACHMENT_MIME_TYPES,
+      });
+      if (!attachmentValidation.valid) {
+        return res.status(400).json({ success: false, message: attachmentValidation.message });
       }
 
       const uploadResponse = await cloudinary.uploader.upload(attachment.data, {
         resource_type: "raw",
         folder: "chat_attachments",
-        use_filename: true,
+        use_filename: false,
         unique_filename: true,
       });
 
       attachmentPayload = {
-        url: uploadResponse.secure_url,
+        url: cloudinary.url(uploadResponse.public_id, {
+          secure: true,
+          resource_type: "raw",
+          type: "upload",
+          flags: "attachment",
+        }),
         fileName: attachment.fileName,
-        mimeType: attachment.mimeType,
-        size: declaredAttachmentSize,
+        mimeType: attachmentValidation.mimeType,
+        size: attachmentValidation.size,
       };
     }
 
