@@ -28,7 +28,7 @@ const LoginPage = () => {
       </div>
 
       <form onSubmit={onSubmitHandler} action="" className="w-full max-w-md border border-white/20 bg-white/8 text-white p-6 flex flex-col gap-6 rounded-2xl shadow-2xl backdrop-blur-xl">
-        <h2 className="font-medium text-2xl">Login</h2>
+        <h1 className="font-medium text-2xl">Login</h1>
         <input
           onChange={(e) => setEmail(e.target.value)}
           value={email}
@@ -49,6 +49,11 @@ const LoginPage = () => {
           <span onClick={() => navigate('/recover-password')} className="text-sm text-violet-400 hover:underline cursor-pointer">Reset with recovery code</span>
         </div>
 
+        <div className="flex items-center gap-2 text-sm text-gray-500">
+          <input id="terms-agreement" type="checkbox" />
+          <label htmlFor="terms-agreement">Agree to the terms of use & privacy policy</label>
+        </div>
+
         <button
           type='submit'
           disabled={isSubmitting}
@@ -56,11 +61,6 @@ const LoginPage = () => {
         >
           {isSubmitting ? 'Please wait...' : 'Login Now'}
         </button>
-
-        <div className="flex items-center gap-2 text-sm text-gray-500">
-          <input type="checkbox" />
-          <p>Agree to the terms of use & privacy policy</p>
-        </div>
 
         <div className="flex flex-col gap-2">
           <p className='text-sm text-gray-600'>
