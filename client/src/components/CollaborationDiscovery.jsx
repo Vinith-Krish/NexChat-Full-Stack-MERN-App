@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { AuthContext } from '../../context/AuthContext';
 import { ChatContext } from '../../context/ChatContext';
+import { getErrorMessage } from '../lib/utils';
 import assets from '../assets/assets';
 import toast from 'react-hot-toast';
 
@@ -64,7 +65,7 @@ const CollaborationDiscovery = () => {
                 setDiscoveredUsers(data.users);
             }
         } catch (error) {
-            toast.error('Error discovering users'+error.message);
+            toast.error(getErrorMessage(error, 'Unable to discover users.'));
         }
         setLoading(false);
     };

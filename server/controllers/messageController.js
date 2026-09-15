@@ -4,6 +4,7 @@ import User from "../models/User.js";
 import { io, userSocketMap } from "../server.js";
 import { z } from "zod";
 import { encryptMessage, decryptMessage } from "../lib/encryption.js";
+import { logServerError } from "../lib/logger.js";
 
 const ALLOWED_ATTACHMENT_TYPES = new Set([
   "application/pdf",
@@ -77,7 +78,7 @@ export const getUsersForSidebar = async (req, res) => {
     await Promise.all(promises);
     res.json({ success: true, users: filteredUsers, unseenMessages });
   } catch (error) {
-    console.log(error.message);
+    logServerError("Fetch users for sidebar", error);
     res.status(500).json({ success: false, message: "Error fetching users" });
   }
 };
@@ -89,7 +90,7 @@ export const getMessages = async (req, res) => {
   });
   const parseResult = schema.safeParse(req.params);
   if (!parseResult.success) {
-    return res.status(400).json({ success: false, message: "Invalid user id", errors: parseResult.error.errors });
+    return res.status(400).json({ success: false, message: "Invalid user id" });
   }
   try {
     const { id: selectedUserId } = parseResult.data;
@@ -132,7 +133,7 @@ export const getMessages = async (req, res) => {
     });
     res.json({ success: true, messages: decryptedMessages });
   } catch (error) {
-    console.log(error.message);
+    logServerError("Fetch messages", error);
     res.status(500).json({ success: false, message: "Error fetching messages" });
   }
 };
@@ -143,7 +144,7 @@ export const markMessageSeen = async (req, res) => {
   });
   const parseResult = schema.safeParse(req.params);
   if (!parseResult.success) {
-    return res.status(400).json({ success: false, message: "Invalid message id", errors: parseResult.error.errors });
+    return res.status(400).json({ success: false, message: "Invalid message id" });
   }
   try {
     const { id } = parseResult.data;
@@ -156,7 +157,7 @@ export const markMessageSeen = async (req, res) => {
     }
     res.json({ success: true, message: "Message marked as seen" });
   } catch (error) {
-    console.log(error.message);
+    logServerError("Mark message seen", error);
     res.status(500).json({ success: false, message: "Error marking message as seen" });
   }
 };
@@ -168,7 +169,7 @@ export const deleteMessage = async (req, res) => {
   });
   const parseResult = schema.safeParse(req.params);
   if (!parseResult.success) {
-    return res.status(400).json({ success: false, message: "Invalid message id", errors: parseResult.error.errors });
+    return res.status(400).json({ success: false, message: "Invalid message id" });
   }
 
   try {
@@ -197,7 +198,7 @@ export const deleteMessage = async (req, res) => {
 
     res.json({ success: true, message: "Message deleted" });
   } catch (error) {
-    console.log(error.message);
+    logServerError("Delete message", error);
     res.status(500).json({ success: false, message: "Error deleting message" });
   }
 };
@@ -223,7 +224,7 @@ export const sendMessage = async (req, res) => {
   const paramResult = paramSchema.safeParse(req.params);
   const bodyResult = bodySchema.safeParse(req.body);
   if (!paramResult.success || !bodyResult.success) {
-    return res.status(400).json({ success: false, message: "Invalid input", errors: [paramResult.error?.errors, bodyResult.error?.errors] });
+    return res.status(400).json({ success: false, message: "Invalid input" });
   }
   try {
     const { text, image, attachment, replyToMessageId } = bodyResult.data;
@@ -321,7 +322,7 @@ export const sendMessage = async (req, res) => {
     }
     res.json({ success: true, message: decryptedMessage });
   } catch (error) {
-    console.log(error.message);
+    logServerError("Send message", error);
     res.status(500).json({ success: false, message: "Error sending message" });
   }
 };

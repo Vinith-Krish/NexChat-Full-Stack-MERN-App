@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { logServerError } from "./logger.js";
 
 // Encryption key - store this SECURELY in your .env file!
 // Generate with: node -e "console.log(crypto.randomBytes(32).toString('hex'))"
@@ -52,7 +53,7 @@ export const decryptMessage = (encryptedData) => {
     
     return decrypted;
   } catch (error) {
-    console.error("Decryption error:", error.message);
+    logServerError("Message decryption", error);
     return null;
   }
 };

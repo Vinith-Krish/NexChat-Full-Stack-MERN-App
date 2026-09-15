@@ -3,6 +3,7 @@ import axios from "axios";
 import { createContext, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { io } from "socket.io-client";
+import { getErrorMessage } from "../src/lib/utils";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 export const AuthContext = createContext();
@@ -31,7 +32,7 @@ export const AuthProvider = ({ children }) => {
       setAuthUser(null);
       // Suppress 401 errors on initial load
       if (error.response?.status !== 401) {
-        toast.error(error.message);
+        toast.error(getErrorMessage(error, "Unable to check authentication."));
       }
     } finally {
       setIsAuthLoading(false);
@@ -51,7 +52,7 @@ export const AuthProvider = ({ children }) => {
         return false;
       }
     } catch (error) {
-      toast.error(error.message);
+      toast.error(getErrorMessage(error, "Unable to sign in."));
       return false;
     }
   };
@@ -67,7 +68,7 @@ export const AuthProvider = ({ children }) => {
       toast.error(data.message);
       return null;
     } catch (error) {
-      toast.error(error.message);
+      toast.error(getErrorMessage(error, "Unable to generate a recovery code."));
       return null;
     } finally {
       setIsGeneratingRecoveryCode(false);
@@ -79,7 +80,7 @@ export const AuthProvider = ({ children }) => {
     try {
       await axios.post("/api/auth/logout", {}, { withCredentials: true });
     } catch (error) {
-      console.warn("Logout request failed:", error.message);
+      console.warn("Logout request failed");
     }
     setAuthUser(null);
     setOnlineUsers([]);
@@ -102,7 +103,7 @@ export const AuthProvider = ({ children }) => {
       toast.error(data.message);
       return false;
     } catch (error) {
-      toast.error(error.message);
+      toast.error(getErrorMessage(error, "Unable to update your profile."));
       return false;
     } finally {
       setIsUpdatingProfile(false);
@@ -121,7 +122,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       return {
         success: false,
-        message: error.response?.data?.message || error.message,
+        message: getErrorMessage(error, "Unable to update your skills profile."),
       };
     }
   };
@@ -139,7 +140,7 @@ export const AuthProvider = ({ children }) => {
       setOnlineUsers(userIds.map(String));
     });
     newSocket.on("connect_error", (error) => {
-      console.error("Socket connection failed:", error.message);
+      console.error("Socket connection failed");
     });
     newSocket.connect();
     setSocket(newSocket);

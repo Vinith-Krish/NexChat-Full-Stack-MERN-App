@@ -4,6 +4,7 @@ import { z } from "zod";
 import cloudinary from "../lib/cloudinary.js";
 import { generateToken } from "../lib/utils.js";
 import User from "../models/User.js";
+import { logServerError } from "../lib/logger.js";
 
 const RECOVERY_CODE_PEPPER = process.env.RECOVERY_CODE_PEPPER;
 
@@ -47,7 +48,7 @@ export const resetPassword = async (req, res) => {
     });
     const parseResult = schema.safeParse(req.body);
     if (!parseResult.success) {
-        return res.status(400).json({ message: "Invalid input", errors: parseResult.error.errors });
+        return res.status(400).json({ success: false, message: "Invalid input" });
     }
     const { email, recoveryCode, password } = parseResult.data;
     const user = await User.findOne({ email });
@@ -104,7 +105,7 @@ export const signup = async (req, res) => {
     });
     const parseResult = schema.safeParse(req.body);
     if (!parseResult.success) {
-        return res.status(400).json({ success: false, message: "Invalid input", errors: parseResult.error.errors });
+        return res.status(400).json({ success: false, message: "Invalid input" });
     }
     
     const { 
@@ -147,7 +148,7 @@ export const signup = async (req, res) => {
         
         res.json({ success: true, userData, recoveryCode, message: "User created successfully" });
     } catch (error) {
-        console.log(error.message);
+        logServerError("Signup", error);
         res.status(500).json({ success: false, message: "Error creating user" });
     }
 };
@@ -159,7 +160,7 @@ export const login = async (req, res) => {
     });
     const parseResult = schema.safeParse(req.body);
     if (!parseResult.success) {
-        return res.status(400).json({ success: false, message: "Invalid input", errors: parseResult.error.errors });
+        return res.status(400).json({ success: false, message: "Invalid input" });
     }
     const { email, password } = parseResult.data;
     try {
@@ -176,7 +177,7 @@ export const login = async (req, res) => {
         res.cookie("token", token, getCookieOptions());
         res.json({ success: true, userData: safeUser, message: "User logged in successfully" });
     } catch (error) {
-        console.log(error.message);
+        logServerError("Login", error);
         res.status(500).json({ success: false, message: "Error logging in" });
     }
 };
@@ -205,7 +206,7 @@ export const updateProfile = async (req, res) => {
     });
     const parseResult = schema.safeParse(req.body);
     if (!parseResult.success) {
-        return res.status(400).json({ success: false, message: "Invalid input", errors: parseResult.error.errors });
+        return res.status(400).json({ success: false, message: "Invalid input" });
     }
     const { fullName, bio, profilePic } = parseResult.data;
     const userId = req.user._id;
@@ -219,7 +220,7 @@ export const updateProfile = async (req, res) => {
         }
         res.json({ success: true, userData: updatedUser, message: "Profile updated successfully" });
     } catch (error) {
-        console.log(error.message);
+        logServerError("Profile update", error);
         res.status(500).json({ success: false, message: "Error updating profile" });
     }
 };
@@ -249,7 +250,7 @@ export const updateSkillsProfile = async (req, res) => {
     
     const parseResult = schema.safeParse(req.body);
     if (!parseResult.success) {
-        return res.status(400).json({ success: false, message: "Invalid input", errors: parseResult.error.errors });
+        return res.status(400).json({ success: false, message: "Invalid input" });
     }
     
     const userId = req.user._id;
@@ -264,7 +265,7 @@ export const updateSkillsProfile = async (req, res) => {
         
         res.json({ success: true, userData: updatedUser, message: "Skills profile updated" });
     } catch (error) {
-        console.log(error.message);
+        logServerError("Skills profile update", error);
         res.status(500).json({ success: false, message: "Error updating skills profile" });
     }
 };
@@ -303,7 +304,7 @@ export const getUsersBySkill = async (req, res) => {
     
     const parseResult = schema.safeParse(normalizedQuery);
     if (!parseResult.success) {
-        return res.status(400).json({ success: false, message: "Invalid input", errors: parseResult.error.errors });
+        return res.status(400).json({ success: false, message: "Invalid input" });
     }
     
     const { skills, experienceLevel, lookingFor, limit, skip } = parseResult.data;
@@ -338,7 +339,7 @@ export const getUsersBySkill = async (req, res) => {
             message: "Users found" 
         });
     } catch (error) {
-        console.log(error.message);
+        logServerError("User discovery", error);
         res.status(500).json({ success: false, message: "Error fetching users" });
     }
 };

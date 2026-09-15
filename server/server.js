@@ -7,6 +7,7 @@ import { connectDB } from "./lib/db.js";
 import userRouter from "./routes/userRoutes.js";
 import messageRouter from "./routes/messageRoutes.js";
 import { Server } from "socket.io";
+import { logServerError } from "./lib/logger.js";
 
 const normalizeOrigin = (origin = "") => origin.trim().replace(/\/+$/, "");
 
@@ -92,6 +93,12 @@ app.use(cors({
 app.use("/api/status", (req, res) => res.send("Server is running fine"));
 app.use("/api/auth", userRouter);
 app.use("/api/messages", messageRouter);
+
+app.use((error, req, res, next) => {
+  logServerError(`${req.method} ${req.originalUrl}`, error);
+  if (res.headersSent) return res.end();
+  res.status(500).json({ success: false, message: "Internal server error" });
+});
 
 // connect to mongodb
 await connectDB();

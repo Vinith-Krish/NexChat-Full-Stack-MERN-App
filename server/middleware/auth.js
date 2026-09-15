@@ -1,5 +1,6 @@
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
+import { logServerError } from "../lib/logger.js";
 
 // Middleware to protect routes
 export const protectRoute = async (req, res, next) => {
@@ -24,7 +25,7 @@ export const protectRoute = async (req, res, next) => {
         req.user = safeUser;
         next();
     } catch (error) {
-        console.log(error.message);
+        logServerError("Authentication middleware", error);
         res.status(401).json({ success: false, message: "Error protecting route" });
     }
 };

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import assets from '../assets/assets';
 import { AuthContext } from '../../context/AuthContext';
+import { getErrorMessage } from '../lib/utils';
 
 const RecoverPassword = () => {
   const { axios } = useContext(AuthContext);
@@ -35,7 +36,7 @@ const RecoverPassword = () => {
         setTimeout(() => navigate('/login'), 1500);
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message || 'Unable to reset password');
+      toast.error(getErrorMessage(error, 'Unable to reset password'));
     } finally {
       setLoading(false);
     }

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import assets from '../assets/assets'
 import { AuthContext } from '../../context/AuthContext'
 import toast from 'react-hot-toast';
+import { getErrorMessage } from '../lib/utils';
 
 const SKILL_OPTIONS = [
   'JavaScript', 'Python', 'Go', 'Rust', 'Java', 'C++', 'TypeScript', 'PHP',
@@ -100,7 +101,7 @@ const [tempLookingFor] = useState(authUser?.lookingFor || []);
         toast.error(result.message || 'Unable to update skills');
         }
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message || 'Error updating skills');
+      toast.error(getErrorMessage(error, 'Unable to update skills'));
     }
 };
 

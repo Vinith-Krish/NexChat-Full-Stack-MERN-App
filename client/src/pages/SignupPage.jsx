@@ -3,6 +3,7 @@ import assets from '../assets/assets';
 import { AuthContext } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
+import { getErrorMessage } from '../lib/utils';
 
 const SKILL_OPTIONS = [
     // Languages
@@ -127,7 +128,7 @@ const SignupPage = () => {
                 toast.error(data.message);
             }
         } catch (error) {
-            toast.error(error.response?.data?.message || error.message);
+            toast.error(getErrorMessage(error, 'Unable to create your account.'));
         }
         
         setIsSubmitting(false);
