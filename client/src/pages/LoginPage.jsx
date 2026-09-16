@@ -45,12 +45,12 @@ const LoginPage = () => {
           required
           className="p-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
-        <div className="text-right mt-1">
-          <span onClick={() => navigate('/recover-password')} className="text-sm text-violet-400 hover:underline cursor-pointer">Reset with recovery code</span>
+        <div className="text-left -my-4">
+          <button type="button" onClick={() => navigate('/recover-password')} className="text-left text-sm text-violet-400 hover:underline focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded cursor-pointer">Reset with recovery code</button>
         </div>
 
         <div className="flex items-center gap-2 text-sm text-gray-500">
-          <input id="terms-agreement" type="checkbox" />
+          <input id="terms-agreement" type="checkbox" className="h-[18px] w-[18px] shrink-0 accent-violet-500" />
           <label htmlFor="terms-agreement">Agree to the terms of use & privacy policy</label>
         </div>
 
@@ -64,8 +64,8 @@ const LoginPage = () => {
 
         <div className="flex flex-col gap-2">
           <p className='text-sm text-gray-600'>
-            Create an account{' '}
-            <span onClick={() => navigate('/signup')} className='font-medium text-violet-500 cursor-pointer'>Click here</span>
+            Don't have an account?{' '}
+            <button type="button" onClick={() => navigate('/signup')} className='font-medium text-violet-500 hover:underline focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded cursor-pointer'>Create an account</button>
           </p>
         </div>
       </form>

@@ -43,7 +43,8 @@ const Sidebar = ({ discoveryOpen, onToggleDiscovery }) => {
         <button
           type='button'
           onClick={onToggleDiscovery}
-          className={`w-full mt-3 py-2 rounded-md text-sm ${discoveryOpen ? 'bg-violet-600 text-white' : 'bg-[#282142] text-gray-200'}`}
+          aria-pressed={discoveryOpen}
+          className={`w-full mt-4 rounded-md border border-white/15 py-2 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-violet-400 ${discoveryOpen ? 'bg-violet-600/40 text-white' : 'bg-white/5 text-gray-200 hover:bg-white/10'}`}
         >
           {discoveryOpen ? 'Hide Discovery' : 'Discover Collaborators'}
         </button>
