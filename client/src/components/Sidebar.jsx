@@ -34,15 +34,15 @@ const Sidebar = ({ discoveryOpen, onToggleDiscovery }) => {
               </div>
           </div>
         </div>
-        <div className='bg-[#282142] rounded-md flex items-center gap-2 py-3 px-4 mt-5' >
+        <div className='bg-gray-100/12 rounded-2xl flex items-center gap-2 py-3 px-4 mt-5' >
           <img src={assets.search_icon} alt="Search" className='w-3' />
-          <input onChange={(e)=>setInput(e.target.value)}  type="text" className="bg-transparent border-none outline-none text-white text-xs placeholder-[#c8c8c8] flex-1" placeholder='Search User...' />
+          <input onChange={(e)=>setInput(e.target.value)}  type="text" className="bg-transparent border-none outline-none text-white text-sm placeholder-gray-400 flex-1" placeholder='Search User...' />
         </div>
         <button
           type='button'
           onClick={onToggleDiscovery}
           aria-pressed={discoveryOpen}
-          className={`w-full mt-4 rounded-md border border-white/15 py-2 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-violet-400 ${discoveryOpen ? 'bg-violet-600/40 text-white' : 'bg-white/5 text-gray-200 hover:bg-white/10'}`}
+          className={`w-full mt-4 rounded-md border-2 border-violet-400/50 py-2 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-violet-400 ${discoveryOpen ? 'bg-violet-600/50 text-white' : 'bg-violet-500/10 text-gray-100 hover:bg-violet-500/20'}`}
         >
           {discoveryOpen ? 'Hide Discovery' : 'Discover Collaborators'}
         </button>
@@ -72,7 +72,7 @@ const Sidebar = ({ discoveryOpen, onToggleDiscovery }) => {
         type="button"
         onClick={logout}
         aria-label="Log out of NexChat"
-        className="mt-4 w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-left text-sm font-light text-gray-300 transition-colors hover:border-violet-400 hover:bg-violet-500/30 hover:text-white focus:outline-none focus:ring-2 focus:ring-violet-400"
+        className="mt-4 self-center rounded-md border border-white/10 bg-white/5 px-6 py-2 text-center text-sm font-light text-gray-300 transition-colors hover:border-violet-400 hover:bg-violet-500/30 hover:text-white focus:outline-none focus:ring-2 focus:ring-violet-400"
       >
         Log out
       </button>

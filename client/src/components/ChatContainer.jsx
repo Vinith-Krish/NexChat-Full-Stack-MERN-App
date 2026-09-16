@@ -276,7 +276,7 @@ const ChatContainer = () => {
                       {msg.text}
                     </p>
                   )}
-                  <div className="flex items-center gap-2 text-xs text-gray-400 mt-0.5">
+                  <div className="flex items-center gap-2 text-xs leading-none text-gray-400 mt-0">
                     <p>{formatMessageTime(msg.createdAt)}</p>
                     {isOwnMessage && <p>{msg.seen ? 'Seen' : 'Sent'}</p>}
                   </div>
@@ -335,7 +335,7 @@ const ChatContainer = () => {
           onClick={handleSendMessage}
           disabled={sendingMessage}
           aria-label="Send message"
-          className={`shrink-0 rounded-full p-0 ${sendingMessage ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+          className={`inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full p-0 ${sendingMessage ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
         >
           <img src={assets.send_button} alt="" className="w-7" />
         </button>
