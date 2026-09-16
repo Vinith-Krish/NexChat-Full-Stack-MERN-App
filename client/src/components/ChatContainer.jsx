@@ -160,8 +160,8 @@ const ChatContainer = () => {
   return selectedUser ? (
     <div className='h-full overflow-scroll relative backdrop-blur-lg'>
       <div className="flex items-center gap-3 py-3 mx-4 border-b border-stone-500">
-        <img src={selectedUser.profilePic || assets.avatar_icon} alt="" className="w-8 rounded-full" />
-        <p className="flex-1 text-lg text-white flex items-center gap-2">
+        <img src={selectedUser.profilePic || assets.avatar_icon} alt="" className="max-md:block hidden w-8 rounded-full" />
+        <p className="max-md:flex hidden flex-1 text-lg text-white items-center gap-2">
           {selectedUser.fullName}
           {onlineUsers.includes(String(selectedUser._id)) && <span className='w-2 h-2 rounded-full bg-green-500'></span>}
         </p>
@@ -180,7 +180,7 @@ const ChatContainer = () => {
 
           return (
             <div id={`message-${msg._id}`} key={msg._id} className={`flex gap-2 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
-              <div className={`group flex items-end gap-2 max-w-[85%] ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}>
+              <div className={`group flex items-start gap-2 max-w-[85%] ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}>
                 <img
                   src={isOwnMessage ? authUser?.profilePic || assets.avatar_icon : selectedUser?.profilePic || assets.avatar_icon}
                   alt=""
@@ -276,7 +276,7 @@ const ChatContainer = () => {
                       {msg.text}
                     </p>
                   )}
-                  <div className="flex items-center gap-2 text-xs text-gray-400 mt-1">
+                  <div className="flex items-center gap-2 text-xs text-gray-400 mt-0.5">
                     <p>{formatMessageTime(msg.createdAt)}</p>
                     {isOwnMessage && <p>{msg.seen ? 'Seen' : 'Sent'}</p>}
                   </div>
