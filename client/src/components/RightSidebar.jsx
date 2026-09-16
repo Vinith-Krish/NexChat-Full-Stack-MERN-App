@@ -19,7 +19,7 @@ const RightSidebar = () => {
   return selectedUser && (
     <div className={`bg-[#8185B2]/10 text-white w-full relative overflow-y-scroll ${selectedUser ? 'max-md:hidden':''}`}>
 
-        <div className=" pt-16 flex flex-col items-center gap-2 text-xs font-light mx-auto">
+        <div className="pt-16 flex flex-col items-start gap-2 text-xs font-light mx-auto w-full">
           <img src={selectedUser?.profilePic || assets.avatar_icon} alt="" className="self-start mx-5 w-20 aspect-square rounded-full" />
           <h1 className='w-full px-5 text-xl font-medium flex items-center justify-start gap-2'>
             {onlineUsers.includes(String(selectedUser._id)) && <p className="w-2 h-2 rounded-full bg-green-500"></p> }

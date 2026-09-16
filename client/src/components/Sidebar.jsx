@@ -53,7 +53,7 @@ const Sidebar = ({ discoveryOpen, onToggleDiscovery }) => {
           <div className="px-4 py-6 text-sm text-gray-400">No users found.</div>
         )}
         {filteredUsers.map((user,index)=>(
-          <div onClick={()=>{setSelectedUser(user); setUnseenMessages(prev => ({...prev, [user._id]: 0}))}} key={index} className={`relative flex items-center gap-2 p-2 pl-4 rounded cursor-pointer max-sm:text-sm ${selectedUser?._id === user._id && 'bg-[#282142]/50'}`}>
+          <div onClick={()=>{setSelectedUser(user); setUnseenMessages(prev => ({...prev, [user._id]: 0}))}} key={index} className={`relative flex items-center gap-2 rounded border-l-2 p-2 pl-4 cursor-pointer max-sm:text-sm ${selectedUser?._id === user._id ? 'border-violet-400 bg-violet-500/30 text-white' : 'border-transparent'}`}>
             <img src={user?.profilePic || assets.avatar_icon} alt="" className="w-8.75 aspect-square rounded-full" />
             <div className=" flex flex-col leading-5">
               <p >{user.fullName}</p>
@@ -71,7 +71,7 @@ const Sidebar = ({ discoveryOpen, onToggleDiscovery }) => {
       <button
         type="button"
         onClick={logout}
-        className="mt-4 w-full rounded-md border border-white/15 bg-white/5 py-2 text-sm font-light text-gray-200 transition-colors hover:border-violet-400 hover:bg-violet-500/30 hover:text-white focus:outline-none focus:ring-2 focus:ring-violet-400"
+        className="mt-4 self-start px-1 py-1 text-xs font-light text-gray-400 transition-colors hover:text-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-400 rounded"
       >
         Logout
       </button>
