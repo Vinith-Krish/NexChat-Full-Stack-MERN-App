@@ -271,12 +271,12 @@ const ChatContainer = () => {
                     </button>
                   ) : (
                     <p
-                      className={`p-2 max-w-50 md:text-sm font-light rounded-lg wrap-break-word bg-violet-500/30 text-white ${isOwnMessage ? 'rounded-br-none' : 'rounded-bl-none'}`}
+                      className={`p-3 max-w-50 text-sm md:text-base font-light rounded-lg wrap-break-word bg-violet-500/30 text-white ${isOwnMessage ? 'rounded-br-none' : 'rounded-bl-none'}`}
                     >
                       {msg.text}
                     </p>
                   )}
-                  <div className="flex items-center gap-2 text-[11px] text-gray-400 mt-1">
+                  <div className="flex items-center gap-2 text-xs text-gray-400 mt-1">
                     <p>{formatMessageTime(msg.createdAt)}</p>
                     {isOwnMessage && <p>{msg.seen ? 'Seen' : 'Sent'}</p>}
                   </div>
@@ -289,7 +289,7 @@ const ChatContainer = () => {
         <div ref={scrollEnd}></div>
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 flex items-center gap-3 p-3">
+      <div className="absolute bottom-0 left-0 right-0 flex items-center gap-1 p-3">
         <div className="flex-1 bg-gray-100/12 px-3 rounded-2xl">
           {replyingTo && (
             <div className="flex items-start justify-between gap-2 pt-2">
@@ -330,12 +330,15 @@ const ChatContainer = () => {
           </label>
           </div>
         </div>
-        <img
+        <button
+          type="button"
           onClick={handleSendMessage}
-          src={assets.send_button}
-          alt=""
-          className={`w-7 ${sendingMessage ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-        />
+          disabled={sendingMessage}
+          aria-label="Send message"
+          className={`shrink-0 rounded-full p-0 ${sendingMessage ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+        >
+          <img src={assets.send_button} alt="" className="w-7" />
+        </button>
       </div>
     </div>
   ) : (

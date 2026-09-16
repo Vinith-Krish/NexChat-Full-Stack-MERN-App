@@ -8,7 +8,7 @@ import { useEffect } from 'react'
 
 const RightSidebar = () => {
   const {selectedUser,messages} = useContext(ChatContext);
-  const {logout,onlineUsers} = useContext(AuthContext);
+  const {onlineUsers} = useContext(AuthContext);
   const [msgImages,setMsgImages] = useState([]);
 
   // get all images from the messages and set them in state
@@ -20,7 +20,7 @@ const RightSidebar = () => {
     <div className={`bg-[#8185B2]/10 text-white w-full relative overflow-y-scroll ${selectedUser ? 'max-md:hidden':''}`}>
 
         <div className=" pt-16 flex flex-col items-center gap-2 text-xs font-light mx-auto">
-          <img src={selectedUser?.profilePic || assets.avatar_icon} alt="" className="w-20 aspect-square rounded-full" />
+          <img src={selectedUser?.profilePic || assets.avatar_icon} alt="" className="self-start mx-5 w-20 aspect-square rounded-full" />
           <h1 className='w-full px-5 text-xl font-medium flex items-center justify-start gap-2'>
             {onlineUsers.includes(String(selectedUser._id)) && <p className="w-2 h-2 rounded-full bg-green-500"></p> }
             
@@ -45,13 +45,6 @@ const RightSidebar = () => {
             </div>
           )}
         </div>
-        <button
-          type="button"
-          onClick={logout}
-          className="absolute bottom-5 left-1/2 -translate-x-1/2 rounded-md border border-white/15 bg-white/5 px-6 py-2 text-sm font-light text-gray-200 transition-colors hover:border-violet-400 hover:bg-violet-500/30 hover:text-white focus:outline-none focus:ring-2 focus:ring-violet-400"
-        >
-          Logout
-        </button>
     </div>
   )
 }

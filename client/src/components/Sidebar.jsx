@@ -19,7 +19,7 @@ const Sidebar = ({ discoveryOpen, onToggleDiscovery }) => {
     getAllUsers();
   },[onlineUsers, getAllUsers]);
   return (
-    <div className={`bg-[#8185B2]/10 h-full p-5 rounded-r-xl overflow-y-scroll text-white ${selectedUser?'max-md:hidden':''}`}>
+    <div className={`bg-[#8185B2]/10 h-full p-5 rounded-r-xl overflow-hidden flex flex-col text-white ${selectedUser?'max-md:hidden':''}`}>
       <div className='pb-5'>
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
@@ -31,8 +31,6 @@ const Sidebar = ({ discoveryOpen, onToggleDiscovery }) => {
               <div className='absolute top-full right-0 z-20 w-32 p-5 rounded-md bg-[#282142] border
               border-gray-600 hidden group-hover:block'>
                 <p onClick={()=>navigate('/profile')} className='cursor-pointer text-sm'>Edit Profile</p>
-                <hr className="my-2 border-t border-gray-500" />
-                <p onClick={()=>logout()} className='cursor-pointer text-sm'>Logout</p>
               </div>
           </div>
         </div>
@@ -49,7 +47,7 @@ const Sidebar = ({ discoveryOpen, onToggleDiscovery }) => {
           {discoveryOpen ? 'Hide Discovery' : 'Discover Collaborators'}
         </button>
       </div>
-      <div className="flex flex-col">
+      <div className="flex flex-1 min-h-0 flex-col overflow-y-auto">
         {loadingUsers && <div className="px-4 py-6 text-sm text-gray-300">Loading conversations...</div>}
         {!loadingUsers && filteredUsers.length === 0 && authUser && (
           <div className="px-4 py-6 text-sm text-gray-400">No users found.</div>
@@ -70,6 +68,13 @@ const Sidebar = ({ discoveryOpen, onToggleDiscovery }) => {
           </div>
         ))}
       </div>
+      <button
+        type="button"
+        onClick={logout}
+        className="mt-4 w-full rounded-md border border-white/15 bg-white/5 py-2 text-sm font-light text-gray-200 transition-colors hover:border-violet-400 hover:bg-violet-500/30 hover:text-white focus:outline-none focus:ring-2 focus:ring-violet-400"
+      >
+        Logout
+      </button>
     </div>
   )
 }
